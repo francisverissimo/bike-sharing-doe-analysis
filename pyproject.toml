@@ -9,6 +9,7 @@ description = "DOE-based statistical analysis of the UCI Bike Sharing Dataset"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 dependencies = [
+    "jinja2==3.1.4",
     "matplotlib==3.9.2",
     "numpy==1.26.4",
     "pandas==2.2.3",

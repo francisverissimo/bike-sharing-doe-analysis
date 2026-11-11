@@ -1,0 +1,277 @@
+\documentclass[12pt]{article}
+
+\usepackage{sbc-template}
+\usepackage{graphicx,url,booktabs}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+\sloppy
+
+\title{Statistical Analysis and Demand Prediction for Bike Sharing:\\
+A DOE-Informed Observational Study}
+
+\author{[First Author Name]\inst{1}, [Second Author Name]\inst{1}}
+
+\address{[Department and University]\\
+  Design of Experiments\\
+  \email{[author emails]}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This study examines hourly bicycle rental demand using 17,379 observations from
+the Capital Bikeshare system in Washington, D.C., collected in 2011 and 2012.
+The data are observational and have a natural factorial and temporal structure.
+We combine descriptive statistics, factorial analysis of variance, effect and
+interaction plots, residual diagnostics, and multiple regression. The central
+factorial result is the interaction between hour and working-day status, with a
+partial eta-squared of 0.615 in the full explanatory model. A hierarchical model
+for $\log(1+cnt)$ obtained an adjusted $R^2$ of 0.935, although residual temporal
+dependence remained and motivated HAC standard errors. A distinct predictive
+model was selected using expanding-window validation. On the final quarter of
+2012, it obtained MAE 50.18, RMSE 81.65, and out-of-sample $R^2$ 0.836. The
+results demonstrate strong temporal and weather associations, but the lack of
+randomization prevents causal interpretation.
+\end{abstract}
+
+\begin{resumo}
+Este estudo analisa a demanda horária por bicicletas usando 17.379 observações
+do sistema Capital Bikeshare de Washington, D.C., coletadas em 2011 e 2012. Os
+dados são observacionais e possuem estrutura fatorial natural e temporal. A
+análise combina estatística descritiva, análise de variância fatorial, gráficos
+de efeitos e interações, diagnóstico de resíduos e regressão múltipla. O
+principal resultado fatorial é a interação entre hora e dia útil, com eta
+quadrado parcial de 0,615 no modelo explicativo completo. Um modelo hierárquico
+para $\log(1+cnt)$ obteve $R^2$ ajustado de 0,935, embora a dependência temporal
+residual tenha motivado erros-padrão HAC. O modelo preditivo, selecionado por
+validação com janelas temporais expansivas, obteve MAE 50,18, RMSE 81,65 e
+$R^2$ fora da amostra de 0,836 no último trimestre de 2012. A ausência de
+randomização impede interpretações causais.
+\end{resumo}
+
+\section{Introduction}
+
+Bike-sharing systems record demand at a high temporal resolution and provide a
+useful view of urban mobility. Rental counts depend simultaneously on calendar,
+seasonal, and meteorological conditions. This multi-factor structure makes the
+data suitable for a Design of Experiments (DOE)-informed analysis, even though
+the records were not produced by a controlled experiment.
+
+The objective of this study is to identify and quantify factors and interactions
+associated with hourly rental demand and to develop a predictor that generalizes
+to later periods. The analysis emphasizes the interaction between hour and
+working-day status: commuting should generate morning and evening peaks on
+working days, while non-working days should show a smoother recreational
+profile. We distinguish explanatory inference from predictive validation and
+avoid causal language because no treatment was randomized.
+
+\section{Dataset and Study Design}
+
+The UCI Bike Sharing Dataset \cite{uci-bike-sharing} contains records from the
+Capital Bikeshare system in Washington, D.C. The associated publication describes
+the collection and its event-detection context \cite{fanaee2013}. We use the
+hourly file, covering January 1, 2011 through December 31, 2012.
+
+Each row is one observed hour. The response, \texttt{cnt}, is the total number
+of rentals and equals \texttt{casual + registered}. Those components are not
+used as predictors because they would cause direct target leakage. Factors
+include hour, working-day status, weather category, season, and year. Temperature,
+humidity, and wind speed are normalized continuous covariates. Apparent
+temperature was omitted because its correlation with temperature was 0.988 and
+their joint variance inflation factors exceeded 43.
+
+The design is observational, unrandomized, unblocked, and naturally factorial.
+It is neither a controlled factorial experiment nor an OFAT design. Observations
+are ordered in time and therefore cannot be assumed independent. There are 165
+missing timestamps in the complete hourly calendar sequence; no imputation was
+performed because the models use observed hours rather than lagged responses.
+Only three rows have weather level 4, so levels 3 and 4 were combined as
+``precipitation/adverse'' for inferential stability while the original data were
+kept unchanged.
+
+\section{Methods}
+
+\subsection{Descriptive and DOE-informed analyses}
+
+We calculated sample sizes, means, medians, standard deviations, quartiles,
+histograms, boxplots, temporal plots, and Pearson correlations. Main-effect plots
+show group means with 95\% confidence intervals. Interaction plots examine hour
+with working-day status, weather, and season.
+
+One-way ANOVA and median-centered Levene tests were calculated on the raw and
+log-transformed responses. Factorial models were estimated with ordinary least
+squares. Nested partial F tests evaluated the incremental contribution of
+interactions, and type-II ANOVA tables report partial eta-squared. Tukey HSD was
+used for descriptive pairwise contrasts. Because the design is observational
+and unbalanced, inferential conclusions rely on effect magnitude and uncertainty,
+not p-values alone \cite{montgomery2017}.
+
+\subsection{Transformations and explanatory regression}
+
+Raw \texttt{cnt}, $\sqrt{cnt}$, and $\log(1+cnt)$ were compared using Q--Q,
+residual-versus-fitted, scale-location, Breusch--Pagan, Shapiro--Wilk (a fixed
+5,000-residual subset), Jarque--Bera, and Durbin--Watson diagnostics. Box--Cox
+maximum likelihood was also calculated \cite{boxcox1964}. The logarithmic scale
+was retained for the MVP because it most reduced the Breusch--Pagan statistic,
+improved adjusted $R^2$, and supports a multiplicative interpretation, although
+none of the candidate scales fully satisfied classical assumptions.
+
+Five hierarchical explanatory models were fitted: main effects (M0); hour by
+working day (M1); weather by hour (M2); season by hour (M3); and a quadratic
+temperature term (M4). Every interaction retained its component main effects.
+Model comparison used adjusted $R^2$, AIC, BIC, and nested tests. Due to residual
+autocorrelation, coefficient uncertainty for the selected explanatory model was
+also calculated with Newey--West HAC covariance using 168 observed-hour lags
+\cite{neweywest1987}.
+
+\subsection{Chronological predictive validation}
+
+Predictive evaluation was separate from full-sample inference. Models were
+trained through March 2012 and evaluated on Q2, then trained through June and
+evaluated on Q3. Mean RMSE across these two expanding-window validation periods
+selected the specification. Q4 2012 was untouched until selection and served as
+the final holdout. This avoids the temporal leakage caused by random splitting.
+
+The predictive models used a continuous time index instead of a categorical year
+effect. Count predictions from the log scale used Duan's smearing correction
+\cite{duan1983}. We report MAE, RMSE, RMSLE, and out-of-sample $R^2$. A historical
+mean for each hour by working-day combination served as the baseline.
+
+\section{Results}
+
+\subsection{Descriptive results}
+
+Table~\ref{tab:descriptive} summarizes the response. Its mean exceeds its median,
+and the raw distribution is right-skewed (skewness 1.277).
+
+\begin{table}[ht]
+\centering
+\caption{Descriptive statistics for hourly total rentals.}
+\label{tab:descriptive}
+\resizebox{\columnwidth}{!}{\input{../outputs/tables/paper_descriptive.tex}}
+\end{table}
+
+Mean hourly demand was 204.87 under clear/partly cloudy weather, 175.17 under
+mist/cloudy weather, and 111.50 under precipitation/adverse weather. Seasonal
+means were 111.11 in spring, 208.34 in summer, 236.02 in fall, and 198.87 in
+winter. These are unadjusted associations and reflect imbalances among other
+conditions.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{../outputs/figures/response_distributions.png}
+\caption{Raw and log-transformed hourly rental distributions.}
+\label{fig:distribution}
+\end{figure}
+
+\subsection{Main effects and interactions}
+
+Figure~\ref{fig:interactions} shows the central result. On working days, demand
+peaks near 08:00 and 17:00--18:00. Non-working days show a broader midday peak.
+Consequently, the small adjusted main effect of working-day status must not be
+interpreted without hour.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{../outputs/figures/interaction_plots.png}
+\caption{Observed hour interactions with working-day status, weather, and season.}
+\label{fig:interactions}
+\end{figure}
+
+The full model's partial eta-squared was 0.890 for hour and 0.615 for hour by
+working day (Table~\ref{tab:anova}). Weather by hour and season by hour were
+statistically detectable but smaller, at 0.020 and 0.033. Year had partial
+eta-squared 0.270, reflecting higher adoption in 2012. All weather Tukey contrasts
+on $\log(1+cnt)$ rejected equality. Summer and winter did not differ in their
+unadjusted Tukey contrast ($p=0.743$); all other seasonal pairs did.
+
+\begin{table}[ht]
+\centering
+\caption{Type-II ANOVA for the full explanatory model.}
+\label{tab:anova}
+\resizebox{\columnwidth}{!}{\input{../outputs/tables/paper_anova.tex}}
+\end{table}
+
+\subsection{Model diagnostics and explanatory fit}
+
+The Box--Cox estimate was 0.305. For M1, adjusted $R^2$ rose from 0.812 on the
+raw response to 0.893 on the square-root scale and 0.927 on the log scale. The
+Breusch--Pagan statistic fell from 4282.8 to 2039.7 and 1672.5, respectively, but
+all associated p-values remained below 0.001. The log-scale Durbin--Watson
+statistic was 0.775 in M1 and 0.861 in M4. Residual ACF was 0.612 at lag 1,
+0.243 at lag 24, and 0.200 at lag 168. Thus, the model is informative but its
+classical independence assumption is violated.
+
+Adding hour by working day produced the largest improvement, raising adjusted
+$R^2$ from 0.824 to 0.927. M4 achieved the lowest AIC and BIC in the explanatory
+sequence (Table~\ref{tab:models}). Its 173 parameters make it an explanatory MVP,
+not automatically the preferred operational predictor.
+
+\begin{table}[ht]
+\centering
+\caption{Hierarchical explanatory model comparison on $\log(1+cnt)$.}
+\label{tab:models}
+\resizebox{\columnwidth}{!}{\input{../outputs/tables/paper_models.tex}}
+\end{table}
+
+\subsection{Predictive performance}
+
+P1, which includes hour by working day but excludes weather by hour, had the
+lowest mean validation RMSE (101.51) across Q2 and Q3 2012. The extra interaction
+slightly worsened validation RMSE to 102.86 despite improving in-sample fit.
+This difference illustrates why explanatory significance alone should not select
+a predictor.
+
+On the Q4 holdout, P1 obtained MAE 50.18, RMSE 81.65, $R^2=0.836$, and RMSLE
+0.501 (Table~\ref{tab:holdout}). The hour-by-working-day baseline obtained RMSE
+119.59 and $R^2=0.648$. P1 errors were largest around 17:00--18:00, when demand
+was also highest.
+
+\begin{table}[ht]
+\centering
+\caption{Performance on the untouched Q4 2012 holdout.}
+\label{tab:holdout}
+\resizebox{\columnwidth}{!}{\input{../outputs/tables/paper_holdout.tex}}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{../outputs/figures/holdout_predictions.png}
+\caption{Final holdout predictions from the selected P1 model.}
+\label{fig:predictions}
+\end{figure}
+
+\section{Discussion and Limitations}
+
+Hour is the dominant observed factor, but its meaning depends strongly on
+working-day status. This validates the factorial approach: an OFAT analysis of
+working days would obscure the commuting profile. Weather and season have clear
+associations, while their interactions with hour are smaller than the primary
+interaction. Temperature also has a substantial nonlinear contribution.
+
+The analysis has important limitations. Treatments were not randomized, so
+unmeasured events, system expansion, and temporal trends may confound estimates.
+Residual autocorrelation remains after the included factors, and HAC correction
+changes uncertainty rather than the fitted mean. The Q4 holdout measures one
+future season rather than all possible deployment conditions. The three severe
+weather records cannot support a separate stable estimate. Finally, the MVP
+does not yet compare mixed-effects, autoregressive, or negative-binomial models.
+
+\section{Conclusion}
+
+The DOE-informed analysis identified the hour by working-day interaction as the
+main structural feature of hourly bicycle demand. A rich explanatory model
+captured 93.5\% of log-response variation, while a simpler interaction model
+generalized better and explained 83.6\% of count variation in the final temporal
+holdout. The work demonstrates the value of separating factorial explanation
+from chronological prediction. Before final submission, we will refine robust
+inference, review influential observations, compile the paper in the SBC
+environment, and replace author placeholders.
+
+\bibliographystyle{sbc}
+\bibliography{references}
+
+\end{document}

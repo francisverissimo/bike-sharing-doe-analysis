@@ -96,3 +96,91 @@ a separate chronologically evaluated predictive workflow.
 **Consequence:** Prediction will use expanding windows and an end-of-2012
 holdout rather than a random split or a strict 2011/2012 split with `yr` as an
 unseen categorical level.
+
+## 2026-11-11 — Combine sparse severe weather with precipitation
+
+**Question:** How should weather level 4 be represented in inferential models?
+
+**Evidence:** Only 3 of 17,379 observations have `weathersit = 4`, compared with
+1,419 at level 3. A separate level-4 coefficient would be unstable and could not
+support meaningful contrasts.
+
+**Decision:** Preserve the original four-level variable for provenance and
+descriptive counts, but combine levels 3 and 4 into
+`Precipitation/adverse` for models and effect plots.
+
+**Consequence:** The grouped category has 1,422 observations. Conclusions do not
+claim to estimate severe-weather demand separately.
+
+## 2026-11-11 — Do not impute absent hourly timestamps
+
+**Question:** Should the 165 gaps in the hourly calendar sequence be imputed?
+
+**Evidence:** The response is available for 17,379 observed hours, and the MVP
+models use contemporaneous factors rather than lagged response values. An
+unobserved record cannot be assumed to represent zero rentals.
+
+**Decision:** Analyze recorded hours only and report the 165 absent timestamps.
+
+**Consequence:** Residual ACF lags are described as observed-hour lags rather
+than exact clock-hour lags around gaps.
+
+## 2026-11-11 — Exclude apparent temperature
+
+**Question:** Should `temp` and `atemp` be included together?
+
+**Evidence:** Their Pearson correlation is 0.988. Their candidate-set VIF values
+are 43.55 and 43.65; after removing `atemp`, selected numeric VIF values are near
+1.1 or below.
+
+**Decision:** Retain `temp` and exclude `atemp` from explanatory and predictive
+models.
+
+**Consequence:** Thermal effects are represented by normalized temperature and
+its quadratic term without unstable duplicate information.
+
+## 2026-11-11 — Use log-one-plus count as the MVP response scale
+
+**Question:** Which response scale should anchor linear regression?
+
+**Evidence:** For the M1 structure, adjusted R-squared was 0.812 for raw `cnt`,
+0.893 for `sqrt(cnt)`, and 0.927 for `log1p(cnt)`. The Breusch--Pagan statistic
+decreased from 4282.8 to 2039.7 and 1672.5, respectively. Box--Cox estimated
+lambda 0.305. No candidate fully satisfied normality, homoscedasticity, and
+independence.
+
+**Decision:** Use `log1p(cnt)` for the MVP because it provides the best variance
+stabilization among the prespecified simple transformations, supports
+multiplicative interpretation, and works with smearing back-transformation.
+
+**Consequence:** Continue to report residual violations and use HAC uncertainty;
+do not present the transform as a complete cure.
+
+## 2026-11-11 — Use HAC with 168 observed-hour lags
+
+**Question:** How should uncertainty account for residual temporal dependence?
+
+**Evidence:** In the final explanatory model, Durbin--Watson is 0.861. In the M1
+log model, residual ACF is 0.612 at lag 1, 0.243 at lag 24, and 0.200 at lag 168.
+
+**Decision:** Report Newey--West HAC coefficient intervals with `maxlags=168`
+for the full explanatory model.
+
+**Consequence:** Classical ANOVA remains a descriptive decomposition, while
+coefficient-level inference includes a one-week observed-hour dependence window.
+
+## 2026-11-11 — Distinguish the full explanatory model from the predictor
+
+**Question:** Which model should represent explanation and which should predict?
+
+**Evidence:** M4, including hour interactions and quadratic temperature, had the
+lowest explanatory BIC (15531.4) and adjusted R-squared 0.935. For chronological
+prediction, P1 had the lowest mean validation RMSE (101.51); adding weather by
+hour increased it to 102.86.
+
+**Decision:** Use M4 as the full MVP explanatory model and P1, containing the
+primary hour by working-day interaction, as the selected predictive model.
+
+**Consequence:** On the untouched Q4 2012 holdout, P1 achieved MAE 50.18, RMSE
+81.65, out-of-sample R-squared 0.836, and RMSLE 0.501. In-sample significance is
+not used as the sole criterion for predictive complexity.

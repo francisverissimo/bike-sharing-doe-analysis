@@ -1,6 +1,8 @@
 # Statistical analysis protocol
 
-**Status:** Draft, to be frozen before confirmatory tests are interpreted.
+**Status:** Frozen for the MVP on 2026-11-11. The core hypotheses and methods
+were committed before result generation; implementation decisions and deviations
+are recorded in `docs/decision_log.md`.
 
 ## Research question
 

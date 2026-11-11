@@ -14,7 +14,8 @@ Washington, D.C. (2011–2012). Its primary goals are to:
 
 ## Status
 
-The repository is being initialized. The statistical protocol is documented in
+An end-to-end MVP analysis is available on the `feat/mvp-analysis` branch. The
+statistical protocol is documented in
 [`docs/analysis_protocol.md`](docs/analysis_protocol.md), and consequential
 methodological decisions are recorded in
 [`docs/decision_log.md`](docs/decision_log.md).
@@ -62,8 +63,16 @@ Activate the environment manually when needed:
 source .venv/bin/activate
 ```
 
-Analysis commands will be added incrementally. Eventually, `make all` will
-reproduce every table and figure used in the paper.
+Run the complete MVP pipeline with:
+
+```bash
+make all
+```
+
+This command audits the data and reproduces every table and figure used by the
+paper draft. Individual stages are available as `make validate`, `make eda`,
+`make doe`, `make assumptions`, `make models`, `make prediction`, and
+`make report-assets`.
 
 ## Collaboration
 
