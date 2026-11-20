@@ -94,7 +94,7 @@ def main() -> None:
     model_summary_table(models).to_csv(TABLES_DIR / "explanatory_model_comparison.csv", index=False)
     nested_model_table(models).to_csv(TABLES_DIR / "nested_model_tests.csv", index=False)
 
-    final_name = "M4_temperature_curve"
+    final_name = "M1_workingday_hour"
     final_model = models[final_name]
     add_partial_eta_squared(anova_lm(final_model, typ=2)).to_csv(
         TABLES_DIR / "final_explanatory_anova.csv"

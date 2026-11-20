@@ -1,5 +1,9 @@
 # Analysis scripts
 
+The active scope is deliberately narrow: compare additive M0 with M1, which adds
+only the prespecified `hour × working day` interaction. The predictive stage
+compares a historical baseline, P0, and P1 using chronological windows.
+
 This directory will contain numbered, executable scripts:
 
 1. `00_validate_data.py`
@@ -13,3 +17,6 @@ This directory will contain numbered, executable scripts:
 Reusable functions belong in `src/bike_sharing/`. Scripts should orchestrate an
 analysis, save deterministic artifacts under `outputs/`, and avoid duplicating
 statistical or plotting logic.
+
+For a concept-by-concept explanation, read `docs/tutorial-en.md` or
+`docs/tutorial-pt-br.md`.

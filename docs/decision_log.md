@@ -184,3 +184,37 @@ primary hour by working-day interaction, as the selected predictive model.
 **Consequence:** On the untouched Q4 2012 holdout, P1 achieved MAE 50.18, RMSE
 81.65, out-of-sample R-squared 0.836, and RMSLE 0.501. In-sample significance is
 not used as the sole criterion for predictive complexity.
+
+## 2026-11-20 — Reduce the final narrative to M0 versus M1
+
+**Question:** Is the five-model MVP appropriately sized for the assignment and
+for a clear oral explanation?
+
+**Evidence:** M1 already reaches adjusted R-squared 0.927, and the primary
+`hour × working day` interaction has a clear behavioral interpretation. M2--M4
+add 116 parameters and several secondary questions, making the paper harder to
+teach and defend.
+
+**Decision:** The final narrative compares only additive M0 with interaction M1.
+It retains descriptive analysis, transformation evidence, ANOVA/effect size,
+HAC uncertainty, and chronological prediction. Secondary interactions and the
+quadratic-temperature model are removed from the active pipeline but remain in
+Git history.
+
+**Consequence:** M1 is both the explanatory model and the structural basis for
+P1. The simplified P1 holdout results are MAE 51.99, RMSE 83.07, R-squared 0.830,
+and RMSLE 0.524. This small predictive reduction is accepted in exchange for a
+substantial improvement in clarity and parsimony.
+
+## 2026-11-20 — Maintain bilingual learning documentation
+
+**Question:** How can both authors review statistical concepts while following
+the implementation?
+
+**Decision:** Maintain equivalent didactic guides in Brazilian Portuguese and
+English. The submission article remains in English, as required by the
+assignment.
+
+**Consequence:** `docs/tutorial-pt-br.md` and `docs/tutorial-en.md` explain the
+design, transformation, interaction, ANOVA, regression diagnostics, HAC,
+temporal validation, results, code organization, and review questions.
