@@ -1,16 +1,17 @@
-# MVP status
+# Simplified bilingual MVP status
 
 ## Included
 
 - Deterministic audit of the original UCI files.
 - Descriptive statistics, distributions, boxplots, time series, and correlations.
-- Main-effect and interaction plots.
+- Main-effect plots and the primary `hour × working day` interaction plot.
 - One-way and factorial ANOVA, effect sizes, Tukey contrasts, and HAC tables.
 - Raw, square-root, log, and Box--Cox diagnostic evidence.
-- Hierarchical explanatory regressions and influence diagnostics.
+- The focused M0--M1 explanatory comparison and influence diagnostics.
 - Expanding-window model selection and untouched Q4 2012 holdout evaluation.
 - Generated report tables, an SBC-format article draft, and presentation outline.
 - Automated tests, linting, and one-command reproduction through `make all`.
+- Equivalent didactic guides in English and Brazilian Portuguese.
 
 ## Decisions made in the MVP
 
@@ -18,7 +19,7 @@
 - Use `log1p(cnt)` as the primary MVP response scale.
 - Remove `atemp` from models due to collinearity with `temp`.
 - Use HAC(168) uncertainty for the full explanatory model.
-- Treat M4 as the full explanatory model and P1 as the selected predictor.
+- Use M1 as the explanatory model and P1 as its predictive counterpart.
 
 ## Required before final submission
 
@@ -26,6 +27,7 @@
 - Compile and visually inspect `paper/main.tex` in an SBC-compatible LaTeX environment.
 - Confirm that the paper remains within 6–12 pages and reduce tables if necessary.
 - Review individual HAC coefficients and influential observations in the discussion.
-- Consider a negative-binomial or autoregressive sensitivity model if space permits.
+- Keep nonlinear, secondary-interaction, count, and autoregressive models outside
+  the final scope unless the professor explicitly requests them.
 - Have both authors independently reproduce `make all` from a clean clone.
 - Create the final slides, proofread the English, and tag the submitted release.

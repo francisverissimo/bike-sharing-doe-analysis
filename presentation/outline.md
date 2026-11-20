@@ -41,17 +41,17 @@
 - Explain remaining heteroscedasticity and autocorrelation.
 - Mention HAC(168) uncertainty and the no-causality limitation.
 
-## 8. Explanatory model
+## 8. Simple explanatory comparison
 
-- Show the M0–M4 comparison.
-- M4 adjusted R-squared 0.935 on the log response.
-- Explain why high in-sample fit does not guarantee the best predictor.
+- Compare additive M0 with interaction M1.
+- Adjusted R-squared increases from 0.824 to 0.927.
+- Explain the hierarchy principle and why one interaction is enough.
 
 ## 9. Temporal prediction
 
 - Explain Q2/Q3 expanding-window selection and untouched Q4 holdout.
 - Show `holdout_predictions.png`.
-- P1: MAE 50.18, RMSE 81.65, out-of-sample R-squared 0.836.
+- P1: MAE 51.99, RMSE 83.07, out-of-sample R-squared 0.830.
 
 ## 10. Conclusions and limitations
 

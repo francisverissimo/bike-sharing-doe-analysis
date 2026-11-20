@@ -1,7 +1,11 @@
 # Bike Sharing DOE Analysis
 
+[Português (Brasil)](README.pt-BR.md) | **English**
+
 Statistical analysis and demand prediction for the UCI Bike Sharing Dataset,
-developed for a Design of Experiments course assignment.
+developed for a Design of Experiments course assignment. The final narrative is
+deliberately centered on one question: how working-day status changes the hourly
+demand profile.
 
 The project uses the hourly observations from the Capital Bikeshare system in
 Washington, D.C. (2011–2012). Its primary goals are to:
@@ -14,11 +18,16 @@ Washington, D.C. (2011–2012). Its primary goals are to:
 
 ## Status
 
-An end-to-end MVP analysis is available on the `feat/mvp-analysis` branch. The
-statistical protocol is documented in
+The simplified bilingual analysis is available on the
+`feat/simplified-bilingual-analysis` branch. The statistical protocol is documented in
 [`docs/analysis_protocol.md`](docs/analysis_protocol.md), and consequential
 methodological decisions are recorded in
 [`docs/decision_log.md`](docs/decision_log.md).
+
+Read the complete didactic walkthrough in either language:
+
+- [Português (Brasil)](docs/tutorial-pt-br.md)
+- [English](docs/tutorial-en.md)
 
 ## Dataset
 
@@ -70,7 +79,8 @@ make all
 ```
 
 This command audits the data and reproduces every table and figure used by the
-paper draft. Individual stages are available as `make validate`, `make eda`,
+paper draft. The active comparison contains only additive M0 and interaction M1.
+Individual stages are available as `make validate`, `make eda`,
 `make doe`, `make assumptions`, `make models`, `make prediction`, and
 `make report-assets`.
 

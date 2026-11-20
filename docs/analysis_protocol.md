@@ -1,8 +1,9 @@
 # Statistical analysis protocol
 
-**Status:** Frozen for the MVP on 2026-11-11. The core hypotheses and methods
-were committed before result generation; implementation decisions and deviations
-are recorded in `docs/decision_log.md`.
+**Status:** Core protocol frozen on 2026-11-11. A documented scope reduction was
+adopted on 2026-11-20 to emphasize the M0--M1 comparison and the prespecified
+`workingday × hr` interaction. Decisions and deviations are recorded in
+`docs/decision_log.md`.
 
 ## Research question
 
@@ -48,11 +49,11 @@ together without a specific justification.
 1. Mean hourly demand differs across hours of the day.
 2. Working-day status changes the shape of the hourly demand profile.
 3. Adverse weather is associated with lower hourly demand.
-4. Temperature has a potentially nonlinear association with demand.
+4. Temperature is associated with demand after adjustment for the factors.
 
-The primary interaction is `workingday × hr`. Secondary, exploratory
-interactions are `weathersit × hr`, `season × hr`, and
-`workingday × weathersit`.
+The only interaction in the simplified analysis is the prespecified
+`workingday × hr` interaction. Secondary interactions investigated in the first
+MVP are retained in Git history but excluded from the final narrative.
 
 ## Descriptive analysis
 
@@ -88,16 +89,14 @@ inspecting residual autocorrelation.
 
 ## Explanatory models
 
-Models will be developed hierarchically:
+Two models will be compared hierarchically:
 
-1. main effects;
-2. add `workingday × hr`;
-3. evaluate secondary interactions one at a time;
-4. evaluate a quadratic temperature term;
-5. select a parsimonious, interpretable final model.
+1. M0 with the prespecified main effects;
+2. M1 adding `workingday × hr` while retaining both component main effects.
 
-A negative-binomial regression may be included as a sensitivity analysis if the
-linear models remain unsuitable for the count response after transformation.
+More complex interactions, nonlinear terms, and count regressions are outside
+the simplified scope. Remaining violations are reported rather than hidden by
+expanding the model search.
 
 ## Predictive validation
 
