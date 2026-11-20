@@ -17,7 +17,7 @@ def test_single_model_formula_matches_proposal_scope() -> None:
     assert formula == MODEL_FORMULA.format(target="log1p_cnt")
     for term in (
         "C(hr) * C(workingday)",
-        "C(weathersit)",
+        "C(weather_group)",
         "C(season)",
         "temp",
         "hum",
@@ -25,5 +25,5 @@ def test_single_model_formula_matches_proposal_scope() -> None:
         "C(yr)",
     ):
         assert term in formula
-    assert "weather_group" not in formula
+    assert "C(weathersit)" not in formula
     assert "time_index_days" not in formula

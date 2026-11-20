@@ -14,4 +14,10 @@ def test_derived_columns_are_consistent() -> None:
     assert (data["cnt"] == data["casual"] + data["registered"]).all()
     assert set(data["weathersit"]) == {1, 2, 3, 4}
     assert int((data["weathersit"] == 4).sum()) == 3
+    assert set(data["weather_group"]) == {
+        "Clear/partly cloudy",
+        "Mist/cloudy",
+        "Precipitation/adverse",
+    }
+    assert int((data["weather_group"] == "Precipitation/adverse").sum()) == 1_422
     assert len(find_missing_hours(data)) == 165

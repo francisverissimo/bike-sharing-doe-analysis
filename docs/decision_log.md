@@ -286,3 +286,28 @@ this same scope. `weathersit` is used with its four original levels; the respons
 is `log1p(cnt)`; train contains 15,211 hours through September 2012 and test
 contains 2,168 hours in Q4 2012. Test MAE is 45.27, RMSE 72.97, and R-squared
 0.869. Only the artifacts used by these documents are generated.
+
+## 2026-11-20 — Reintroduce weather pooling and Tukey HSD in the papers
+
+**Question:** Should the submitted articles include the pooled weather condition
+and the post-hoc weather comparisons?
+
+**Evidence:** Raw `weathersit` level 4 contains only three of 17,379 hours, so
+six pairwise comparisons on the four original levels would include unreliable
+contrasts. Pooling levels 3 and 4 yields three interpretable conditions and three
+Tukey contrasts, all with adjusted $p<0.001$. A pooled adverse category does,
+however, combine 1,419 light-precipitation hours with three severe-weather hours.
+
+**Decision:** This entry supersedes the four-level choice recorded above. The
+papers now describe a single precipitation/adverse condition formed from raw
+levels 3 and 4, report Tukey HSD for the three pooled conditions on
+`log1p(cnt)`, and cite Tukey (1949). Every other element of the final
+proposal-compatible scope is unchanged.
+
+**Consequence:** The model uses `C(weather_group)` and has 57 parameters; the
+weather ANOVA term has F = 1180.12 and partial eta-squared 0.120. The three
+log-scale contrasts are clear versus mist 0.142 (95% CI 0.084 to 0.199), clear
+versus adverse 0.691 (0.599 to 0.784), and mist versus adverse 0.550 (0.450 to
+0.650). Both articles, tutorials, protocol, status notes, presentations, LaTeX
+tables, and generated summaries were updated; artifacts were regenerated with
+`make all`.

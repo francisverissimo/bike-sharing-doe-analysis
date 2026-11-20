@@ -5,12 +5,13 @@
 - Deterministic audit of the original UCI hourly file.
 - Descriptive statistics, distributions, boxplots, time series, and correlations
   for `cnt`.
-- Main-effect plots for `hr`, `workingday`, `weathersit`, and `season`.
+- Main-effect plots for `hr`, `workingday`, pooled weather condition, and `season`.
 - One `workingday × hr` interaction plot.
 - One factorial ANOVA with partial eta-squared.
+- Tukey HSD comparisons of the three pooled weather conditions on `log1p(cnt)`.
 - Comparison of `cnt` and `log1p(cnt)`.
-- One regression model with `hr × workingday`, `weathersit`, `season`, `temp`,
-  `hum`, `windspeed`, and `yr`.
+- One regression model with `hr × workingday`, pooled weather condition,
+  `season`, `temp`, `hum`, `windspeed`, and `yr`.
 - Basic residual diagnostics: residual-versus-fitted, Q--Q, and residual ACF.
 - One chronological train/test split and test MAE, RMSE, and R-squared.
 - Generated report tables, SBC article drafts in English and Brazilian
@@ -20,7 +21,9 @@
 
 ## Decisions
 
-- Use `weathersit` as recorded, with its four original levels.
+- Pool `weathersit` levels 3 and 4 because level 4 has only three hours; keep
+  the raw four-level variable for data validation.
+- Report Tukey HSD for the three pooled weather conditions.
 - Use `log1p(cnt)` as the response scale.
 - Use only `temp` among the temperature variables because `atemp` correlates
   0.988 with it.

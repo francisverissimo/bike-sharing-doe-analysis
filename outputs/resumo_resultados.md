@@ -8,19 +8,26 @@
 - Intervalo: 1--977
   aluguéis por hora; assimetria 1,277.
 - Há 165 horários ausentes no calendário; não foi feita imputação.
-- O nível 4 da variável climática possui apenas três observações.
+- Os níveis 3 e 4 foram agrupados porque o nível 4 tem apenas três observações.
+- Média de aluguéis por condição climática: claro/parcialmente nublado
+  204,87, névoa/nublado
+  175,17 e precipitação/tempo adverso
+  111,50.
 
 ## Análise fatorial
 
 - A hora possui eta quadrado parcial 0,878 e a interação
   hora por tipo de dia, 0,589.
-- Clima e estação apresentam eta quadrado parcial
+- Condição climática e estação apresentam eta quadrado parcial
   0,120 e
   0,168, respectivamente.
+- O teste de Tukey HSD em `log1p(cnt)` compara as três condições climáticas
+  agrupadas; todas as 3 de 3 comparações ajustadas
+  são significativas.
 - O único modelo na escala logarítmica usa
-  58 parâmetros, com $R^2$ ajustado
+  57 parâmetros, com $R^2$ ajustado
   0,927, AIC
-  15.916,2 e BIC 16.366,4.
+  15.914,2 e BIC 16.356,7.
 - A ACF residual é 0,612 na defasagem 1,
   0,243 na defasagem 24 e 0,200 na
   defasagem 168.

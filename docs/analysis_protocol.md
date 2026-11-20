@@ -1,7 +1,7 @@
 # Statistical analysis protocol
 
 **Status:** Final analysis protocol, aligned with `paper/main.tex` and
-`paper/main-pt-br.md`. Decisions and deviations are recorded in
+`paper/main-pt-br.tex`. Decisions and deviations are recorded in
 `docs/decision_log.md`.
 
 ## Research question
@@ -29,7 +29,8 @@ Primary factors:
 
 - `hr` (categorical, 24 levels);
 - `workingday` (binary);
-- `weathersit` (four original categories);
+- `weathersit` (levels 3 and 4 pooled into one precipitation/adverse condition;
+  the raw four-level variable is retained for data validation);
 - `season` (categorical).
 
 Numerical covariates:
@@ -66,6 +67,14 @@ large and the design is observational and unbalanced, conclusions consider effec
 magnitude and temporal validation rather than p-values alone. No causal
 interpretation is made.
 
+## Post-hoc weather comparisons
+
+Because the omnibus weather effect is significant, Tukey's honestly significant
+difference (HSD) procedure compares the three pooled weather conditions on
+`log1p(cnt)`. It controls the family-wise error rate across the three pairwise
+contrasts and reports simultaneous 95% confidence intervals. No separate contrast
+is attempted for the three severe-weather hours.
+
 ## Response scale
 
 The response scales `cnt` and `log1p(cnt)` are compared on the same model
@@ -78,7 +87,7 @@ residual autocorrelation function guide the choice of scale.
 One regression model is specified:
 
 ```text
-log1p(cnt) ~ C(hr) * C(workingday) + C(weathersit) + C(season)
+log1p(cnt) ~ C(hr) * C(workingday) + C(weather_group) + C(season)
              + temp + hum + windspeed + C(yr)
 ```
 

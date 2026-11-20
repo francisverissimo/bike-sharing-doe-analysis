@@ -25,13 +25,14 @@ A DOE-Informed Observational Study}
 This study analyses hourly bicycle rental demand using 17,379 observations from
 the Capital Bikeshare system in Washington, D.C., collected in 2011 and 2012.
 The data are observational and have a natural factorial and temporal structure.
-We describe the response, examine the factors hour, working-day status, weather
-situation and season through main-effect plots and the working-day by hour
-interaction, and report a factorial analysis of variance. The raw count and its
+We describe the response, examine the factors hour, working-day status, pooled
+weather condition and season through main-effect plots and the working-day by
+hour interaction, and report a factorial analysis of variance with Tukey HSD
+post-hoc comparisons of the three weather conditions. The raw count and its
 logarithm are compared, and the logarithmic scale is adopted. A single
-regression model with the working-day by hour interaction, weather situation,
-season, temperature, humidity, wind speed and year is fitted, followed by basic
-residual diagnostics. A strictly chronological split trains through September
+regression model with the working-day by hour interaction, pooled weather
+condition, season, temperature, humidity, wind speed and year is fitted,
+followed by basic residual diagnostics. A strictly chronological split trains through September
 2012 and tests on the last quarter of 2012. On the test set the model attains
 MAE 45.27, RMSE 72.97 and $R^2$ 0.869. The associations are strong, but the
 absence of randomisation prevents causal interpretation.
@@ -78,16 +79,18 @@ describes data collection \cite{fanaee2013}. We use the hourly file, covering
 The response, \texttt{cnt}, is the total number of rentals and equals
 \texttt{casual + registered}. Both components are excluded as predictors because
 they would leak the response. The four factors are hour (\texttt{hr}),
-working-day status (\texttt{workingday}), weather situation (\texttt{weathersit})
-and season (\texttt{season}). Temperature, humidity and wind speed are
+working-day status (\texttt{workingday}), weather condition (\texttt{weathersit})
+and season (\texttt{season}). Because level 4 of \texttt{weathersit} occurs in
+only three hours, levels 3 and 4 are pooled into a single precipitation/adverse
+condition for the models, plots and post-hoc comparisons. Temperature, humidity and wind speed are
 standardised continuous covariates. Apparent temperature is not used because its
 correlation with temperature is 0.988.
 
 The design is observational, unrandomised, unblocked and naturally factorial; it
 is not a controlled experiment. Observations are ordered in time and cannot be
 assumed independent. There are 165 absent timestamps in the hourly calendar, and
-no imputation was performed. Weather situation level 4 occurs in only three
-hours, so its descriptive estimate is necessarily imprecise.
+no imputation was performed. The raw four-level variable is retained for data
+validation, while the pooled three-level condition is used for inference.
 
 \section{Methods}
 
@@ -95,8 +98,9 @@ hours, so its descriptive estimate is necessarily imprecise.
 
 We calculated sample sizes, means, medians, standard deviations, quartiles,
 histograms, boxplots, a daily time series and Pearson correlations for
-\texttt{cnt}. Main-effect plots show the mean for each level of the four factors
-with 95\% confidence intervals. A second plot displays mean demand by hour
+\texttt{cnt}. Main-effect plots show the mean for each level of the four factors,
+including the three pooled weather conditions, with 95\% confidence intervals.
+A second plot displays mean demand by hour
 separately for working and non-working days, which makes the hour by
 working-day interaction visible.
 
@@ -108,6 +112,15 @@ by working-day interaction. A type-II analysis of variance reports partial
 eta-squared for every term \cite{montgomery2017}. Since the design is
 observational and unbalanced, effect magnitude and the temporal validation are
 emphasised rather than significance alone.
+
+\subsection{Weather post-hoc comparisons}
+
+Because the omnibus weather effect is significant, Tukey's honestly significant
+difference (HSD) procedure \cite{tukey1949} compares the three pooled weather
+conditions on $\log(1+\texttt{cnt})$. It controls the family-wise error rate
+across the three pairwise contrasts and reports simultaneous 95\% confidence
+intervals. No separate comparison is attempted for the three severe-weather
+hours, which are pooled into the adverse condition.
 
 \subsection{Response scale}
 
@@ -123,10 +136,11 @@ normality assumption is satisfied.
 
 One regression model was specified before fitting:
 \begin{center}
-\texttt{log1p(cnt) $\sim$ C(hr) * C(workingday) + C(weathersit) + C(season)} \\
+\texttt{log1p(cnt) $\sim$ C(hr) * C(workingday) + C(weather\_group) + C(season)} \\
 \texttt{$\quad$ + temp + hum + windspeed + C(yr).}
 \end{center}
-The interaction includes both component main effects. Basic diagnostics consist
+Here \texttt{weather\_group} is the pooled three-level weather condition. The
+interaction includes both component main effects. Basic diagnostics consist
 of residual-versus-fitted plots, normal Q--Q plots and the residual ACF at
 observed-hour lags. Duan's smearing correction was used to back-transform
 predictions to the count scale \cite{duan1983}.
@@ -155,8 +169,9 @@ and the raw distribution is right-skewed (skewness 1.277).
 \end{table}
 
 Mean hourly demand was 204.87 under clear or partly cloudy weather, 175.17 under
-mist or cloudy weather, 111.58 under light precipitation and 74.33 under severe
-weather, the last based on three hours only. Seasonal means were 111.11 in
+mist or cloudy weather and 111.50 under the pooled precipitation/adverse
+condition, which combines 1,419 light-precipitation hours with the three
+severe-weather hours. Seasonal means were 111.11 in
 spring, 208.34 in summer, 236.02 in fall and 198.87 in winter. These unadjusted
 associations reflect imbalances across the other conditions.
 
@@ -178,7 +193,7 @@ non-working days have a broader midday peak.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\columnwidth]{../outputs/figures/main_effects.png}
-\caption{Main-effect plots for hour, working-day status, weather situation and season.}
+\caption{Main-effect plots for hour, working-day status, pooled weather condition and season.}
 \label{fig:main-effects}
 \end{figure}
 
@@ -193,7 +208,7 @@ non-working days have a broader midday peak.
 
 Table~\ref{tab:anova} reports the type-II factorial ANOVA. Hour has partial
 eta-squared 0.878 and the hour by working-day interaction 0.589. Weather
-situation and season contribute 0.120 and 0.168, while year contributes 0.264.
+condition and season contribute 0.120 and 0.168, while year contributes 0.264.
 The working-day main effect alone is small (0.001), consistent with the
 interaction plot.
 
@@ -204,14 +219,31 @@ interaction plot.
 \resizebox{\columnwidth}{!}{\input{../outputs/tables/paper_anova.tex}}
 \end{table}
 
+\subsection{Weather post-hoc comparisons}
+
+Table~\ref{tab:tukey} reports the three Tukey HSD contrasts on the log scale,
+written as the first condition minus the second. All are significant after
+adjustment ($p<0.001$). Clear weather exceeds mist by 0.142 (95\% simultaneous
+CI 0.084 to 0.199) and the adverse condition by 0.691 (0.599 to 0.784);
+mist also exceeds the adverse condition by 0.550 (0.450 to 0.650). The ordering
+agrees with the unadjusted means, but the adverse category is heterogeneous
+because it pools two rare raw levels.
+
+\begin{table}[ht]
+\centering
+\caption{Tukey HSD comparisons of pooled weather conditions on the log response.}
+\label{tab:tukey}
+\resizebox{\columnwidth}{!}{\input{../outputs/tables/paper_tukey.tex}}
+\end{table}
+
 \subsection{Response scale and residual diagnostics}
 
 Table~\ref{tab:scales} compares the two scales. Adjusted $R^2$ rises from 0.812 on
 \texttt{cnt} to 0.927 on $\log(1+\texttt{cnt})$, while the Breusch--Pagan
-statistic falls from 4281.6 to 1676.6. Shapiro--Wilk rejects normality on both
+statistic falls from 4282.8 to 1672.5. Shapiro--Wilk rejects normality on both
 scales, so the logarithmic choice is based on variance and fit rather than on a
-claim of normal residuals. The fitted log model uses 58 parameters, with
-AIC 15916.2 and BIC 16366.4.
+claim of normal residuals. The fitted log model uses 57 parameters, with
+AIC 15914.2 and BIC 16356.7.
 
 \begin{table}[ht]
 \centering
@@ -257,11 +289,12 @@ the observed two-year system.
 
 Hour is the dominant factor, but its shape depends strongly on working-day
 status, which is precisely what a factorial analysis is designed to reveal.
-Weather situation, season, temperature and year add meaningful adjustment. The
+Weather condition, season, temperature and year add meaningful adjustment. The
 analysis is limited by the absence of randomisation: unmeasured events, system
 expansion and temporal trends may confound the estimates. Residual
-autocorrelation remains after the included factors, and three severe-weather
-hours cannot support a precise separate estimate. Mixed-effects, autoregressive
+autocorrelation remains after the included factors, and pooling the three
+severe-weather hours with light precipitation prevents a separate estimate for
+that rarest raw level. Mixed-effects, autoregressive
 and count-distribution models were not investigated.
 
 \section{Conclusion}

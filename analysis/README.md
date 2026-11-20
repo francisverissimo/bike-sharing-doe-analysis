@@ -1,8 +1,9 @@
 # Analysis scripts
 
 The analysis follows the proposal with one regression model. It describes `cnt`,
-plots the main effects of `hr`, `workingday`, `weathersit`, and `season`, plots the
-`workingday × hr` interaction, reports a factorial ANOVA, compares `cnt` with
+plots the main effects of `hr`, `workingday`, the pooled weather condition, and
+`season`, plots the `workingday × hr` interaction, reports a factorial ANOVA and
+Tukey HSD comparisons of the three weather conditions, compares `cnt` with
 `log1p(cnt)`, checks basic residual diagnostics, and evaluates one chronological
 train/test split with MAE, RMSE, and R-squared.
 

@@ -14,7 +14,7 @@ from bike_sharing.statistics import grouped_summary
 FACTORS = {
     "hr": "hr",
     "workingday": "workingday_label",
-    "weathersit": "weather_label",
+    "weather": "weather_group",
     "season": "season_label",
 }
 
@@ -76,7 +76,7 @@ def plot_factor_boxplots(data: pd.DataFrame) -> None:
     specifications = [
         ("hr", "Hour of day", "#c4b5fd"),
         ("workingday_label", "Working-day status", "#93c5fd"),
-        ("weather_label", "Weather situation", "#a7f3d0"),
+        ("weather_group", "Weather condition", "#a7f3d0"),
         ("season_label", "Season", "#fde68a"),
     ]
     for axis, (column, title, color) in zip(axes.flat, specifications):

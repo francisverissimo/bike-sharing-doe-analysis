@@ -19,14 +19,15 @@
 
 ## 4. Factors and hypotheses
 
-- `hr`, `workingday`, `weathersit`, `season`, plus `temp`, `hum`, `windspeed`, `yr`.
+- `hr`, `workingday`, pooled weather condition, `season`, plus `temp`, `hum`,
+  `windspeed`, `yr`.
 - Primary hypothesis: `workingday × hr`.
 - Explain why OFAT would miss the commuting pattern.
 
 ## 5. Descriptive results
 
 - Mean 189.46, median 142, range 1--977, skewness 1.277.
-- Show weather and seasonal means.
+- Show pooled weather and seasonal means; explain why raw level 4 is pooled.
 
 ## 6. Main effects and interaction
 
@@ -37,12 +38,13 @@
 ## 7. Response scale and factorial ANOVA
 
 - Compare `cnt` with `log1p(cnt)`: adjusted R-squared 0.812 versus 0.927.
-- Breusch--Pagan 4281.6 versus 1676.6.
+- Breusch--Pagan 4282.8 versus 1672.5.
 - Report hour 0.878, weather 0.120, season 0.168, year 0.264.
+- Show the three Tukey HSD contrasts: 0.142, 0.691, 0.550 (all adjusted p<0.001).
 
 ## 8. Regression and residual diagnostics
 
-- Show the single model formula with 58 parameters.
+- Show the single model formula with 57 parameters.
 - Residual ACF: 0.612 at lag 1, 0.243 at lag 24, 0.200 at lag 168.
 - Emphasise that the test set carries the predictive evidence.
 
@@ -56,5 +58,6 @@
 
 - Working-day by hour is the central structural interaction.
 - Weather, season, temperature, and year add adjustment.
-- No randomization; residual dependence remains; severe weather is sparse.
+- No randomization; residual dependence remains; severe weather is sparse and
+  pooled into the adverse condition.
 - List final refinements before submission.

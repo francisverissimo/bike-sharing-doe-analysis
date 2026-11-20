@@ -1,4 +1,4 @@
-"""Plot the four factorial main effects and the working-day by hour interaction."""
+"""Plot factorial effects, the key interaction, ANOVA, and weather post-hoc tests."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 import statsmodels.api as sm
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
 from bike_sharing.config import FIGURES_DIR, TABLES_DIR, ensure_output_directories
 from bike_sharing.data import load_hourly_data
@@ -14,12 +15,21 @@ from bike_sharing.plotting import configure_style, save_figure
 from bike_sharing.statistics import add_partial_eta_squared, grouped_summary
 
 
+def save_weather_tukey(data: pd.DataFrame) -> pd.DataFrame:
+    """Compare the three pooled weather conditions on the log response."""
+    result = pairwise_tukeyhsd(data["log1p_cnt"], data["weather_group"])
+    summary = result.summary()
+    table = pd.DataFrame(summary.data[1:], columns=summary.data[0])
+    table.to_csv(TABLES_DIR / "tukey_log1p_by_weather_group.csv", index=False)
+    return table
+
+
 def plot_main_effects(data: pd.DataFrame) -> None:
     figure, axes = plt.subplots(2, 2, figsize=(11, 7))
     specifications = [
         ("hr", "Hour"),
         ("workingday_label", "Working-day status"),
-        ("weather_label", "Weather situation"),
+        ("weather_group", "Weather condition"),
         ("season_label", "Season"),
     ]
     for axis, (factor, label) in zip(axes.flat, specifications):
@@ -77,9 +87,11 @@ def main() -> None:
     anova = add_partial_eta_squared(sm.stats.anova_lm(model, typ=2))
     anova.to_csv(TABLES_DIR / "factorial_anova.csv")
 
+    tukey = save_weather_tukey(data)
+
     plot_main_effects(data)
     plot_workingday_hour_interaction(data)
-    print("Main effects, interaction plot, and factorial ANOVA written.")
+    print(f"Main effects, interaction, ANOVA, and {len(tukey)} Tukey contrasts written.")
 
 
 if __name__ == "__main__":

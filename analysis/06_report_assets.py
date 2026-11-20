@@ -38,7 +38,7 @@ def format_pt_br(value: float, decimals: int = 2) -> str:
 ANOVA_LABELS = {
     "C(hr)": "Hour",
     "C(workingday)": "Working day",
-    "C(weathersit)": "Weather situation",
+    "C(weather_group)": "Weather condition",
     "C(season)": "Season",
     "C(yr)": "Year",
     "C(hr):C(workingday)": "Hour x working day",
@@ -52,6 +52,7 @@ def main() -> None:
     ensure_output_directories()
 
     response = pd.read_csv(TABLES_DIR / "response_summary.csv").set_index("statistic")["value"]
+    weather = pd.read_csv(TABLES_DIR / "summary_by_weather.csv").set_index("weather_group")["mean"]
     descriptive = pd.DataFrame(
         {
             "N": [int(response["n"])],
@@ -77,6 +78,24 @@ def main() -> None:
     anova["p-value"] = anova["p-value"].map(format_p_value)
     anova = anova.rename(columns={"term": "Term"})
     write_latex(anova, "paper_anova.tex", "lrrlr", escape=False)
+
+    tukey = pd.read_csv(TABLES_DIR / "tukey_log1p_by_weather_group.csv")
+    # statsmodels reports group2 minus group1; flip so the table reads group1 minus group2.
+    tukey_table = pd.DataFrame(
+        {
+            "Comparison": [
+                f"{first} vs {second}"
+                for first, second in zip(tukey["group1"], tukey["group2"])
+            ],
+            "Difference": -tukey["meandiff"],
+            "95% CI": [
+                f"[{-high:.3f}, {-low:.3f}]"
+                for low, high in zip(tukey["lower"], tukey["upper"])
+            ],
+            "Adjusted $p$": tukey["p-adj"].map(format_p_value),
+        }
+    )
+    write_latex(tukey_table, "paper_tukey.tex", "lrrlr", escape=False)
 
     scales = pd.read_csv(TABLES_DIR / "scale_comparison.csv").set_index("scale")
     scale_table = pd.DataFrame(
@@ -115,6 +134,7 @@ def main() -> None:
     model = pd.read_csv(TABLES_DIR / "model_summary.csv").iloc[0]
     acf = pd.read_csv(TABLES_DIR / "residual_acf.csv").set_index("lag")["acf"]
     eta = anova.set_index("Term")["Partial eta-squared"]
+    tukey_rejections = int(tukey["reject"].sum())
 
     summary = f"""# Results summary
 
@@ -126,14 +146,19 @@ def main() -> None:
 - Range: {response['min']:.0f}--{response['max']:.0f} rentals per hour;
   skewness {response['skewness']:.3f}.
 - 165 timestamps are absent from the hourly calendar; no imputation was applied.
-- Weather situation level 4 has only three observations.
+- Weather levels 3 and 4 are pooled because level 4 has only three observations.
+- Mean rentals by weather condition: clear/partly cloudy
+  {weather['Clear/partly cloudy']:.2f}, mist/cloudy {weather['Mist/cloudy']:.2f},
+  precipitation/adverse {weather['Precipitation/adverse']:.2f}.
 
 ## Factorial analysis
 
 - Hour has partial eta-squared {eta['Hour']:.3f}; hour by working day has
   {eta['Hour x working day']:.3f}.
-- Weather situation and season have partial eta-squared
-  {eta['Weather situation']:.3f} and {eta['Season']:.3f}, respectively.
+- Weather condition and season have partial eta-squared
+  {eta['Weather condition']:.3f} and {eta['Season']:.3f}, respectively.
+- Tukey HSD on `log1p(cnt)` compares the three pooled weather conditions;
+  all {tukey_rejections} of {len(tukey)} adjusted contrasts are significant.
 - The single log-response model uses {int(model['parameters'])} parameters,
   adjusted R-squared {model['adjusted_r_squared']:.3f},
   AIC {model['aic']:.1f}, and BIC {model['bic']:.1f}.
@@ -164,15 +189,22 @@ they do not establish causal effects.
 - Intervalo: {format_pt_br(response['min'], 0)}--{format_pt_br(response['max'], 0)}
   aluguéis por hora; assimetria {format_pt_br(response['skewness'], 3)}.
 - Há 165 horários ausentes no calendário; não foi feita imputação.
-- O nível 4 da variável climática possui apenas três observações.
+- Os níveis 3 e 4 foram agrupados porque o nível 4 tem apenas três observações.
+- Média de aluguéis por condição climática: claro/parcialmente nublado
+  {format_pt_br(weather['Clear/partly cloudy'])}, névoa/nublado
+  {format_pt_br(weather['Mist/cloudy'])} e precipitação/tempo adverso
+  {format_pt_br(weather['Precipitation/adverse'])}.
 
 ## Análise fatorial
 
 - A hora possui eta quadrado parcial {format_pt_br(eta['Hour'], 3)} e a interação
   hora por tipo de dia, {format_pt_br(eta['Hour x working day'], 3)}.
-- Clima e estação apresentam eta quadrado parcial
-  {format_pt_br(eta['Weather situation'], 3)} e
+- Condição climática e estação apresentam eta quadrado parcial
+  {format_pt_br(eta['Weather condition'], 3)} e
   {format_pt_br(eta['Season'], 3)}, respectivamente.
+- O teste de Tukey HSD em `log1p(cnt)` compara as três condições climáticas
+  agrupadas; todas as {tukey_rejections} de {len(tukey)} comparações ajustadas
+  são significativas.
 - O único modelo na escala logarítmica usa
   {format_pt_br(model['parameters'], 0)} parâmetros, com $R^2$ ajustado
   {format_pt_br(model['adjusted_r_squared'], 3)}, AIC

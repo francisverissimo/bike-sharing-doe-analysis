@@ -12,8 +12,9 @@ proposta com um único modelo de regressão.
 2. Descrever `cnt` e os efeitos de `hr`, `workingday`, `weathersit` e `season`.
 3. Apresentar gráficos de efeitos principais e a interação `workingday × hr`.
 4. Comparar `cnt` e `log1p(cnt)` e verificar diagnósticos básicos dos resíduos.
-5. Ajustar um único modelo com `hr × workingday`, `weathersit`, `season`, `temp`,
-   `hum`, `windspeed` e `yr`.
+5. Ajustar um único modelo com `hr × workingday`, `weather_group`, `season`,
+   `temp`, `hum`, `windspeed` e `yr`, e comparar as três condições climáticas com
+   Tukey HSD.
 6. Avaliar o modelo em uma divisão temporal entre treino e teste, com MAE, RMSE e
    R².
 
@@ -51,10 +52,11 @@ checksums dos arquivos.
 ## Modelo central
 
 ```text
-log1p(cnt) ~ hr * workingday + weathersit + season + temp + hum + windspeed + yr
+log1p(cnt) ~ hr * workingday + weather_group + season + temp + hum + windspeed + yr
 ```
 
-O modelo possui 58 parâmetros e $R^2$ ajustado 0,927 na amostra completa. No
+`weather_group` reúne os níveis brutos 3 e 4 de `weathersit`, pois o nível 4 tem
+apenas três horas. O modelo possui 57 parâmetros e $R^2$ ajustado 0,927 na amostra completa. No
 conjunto de teste do último trimestre de 2012 (2.168 horas), obteve MAE 45,27,
 RMSE 72,97 e R² 0,869. A interação `hora × tipo de dia` possui eta quadrado
 parcial 0,589.

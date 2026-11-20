@@ -19,14 +19,16 @@
 
 ## 4. Fatores e hipótese
 
-- `hr`, `workingday`, `weathersit`, `season`, além de `temp`, `hum`, `windspeed` e `yr`.
+- `hr`, `workingday`, condição climática agrupada, `season`, além de `temp`,
+  `hum`, `windspeed` e `yr`.
 - Hipótese principal: `workingday × hr`.
 - Explicar por que OFAT perderia o padrão de deslocamento.
 
 ## 5. Descrição dos dados
 
 - Média 189,46; mediana 142; intervalo 1--977; assimetria 1,277.
-- Resumir as médias por clima e por estação.
+- Resumir as médias por condição climática agrupada e por estação; explicar o
+  agrupamento do nível bruto 4.
 
 ## 6. Efeitos e interação
 
@@ -38,12 +40,13 @@
 ## 7. Escala da resposta e ANOVA fatorial
 
 - Comparar `cnt` com `log1p(cnt)`: $R^2$ ajustado 0,812 contra 0,927.
-- Breusch--Pagan 4281,6 contra 1676,6.
+- Breusch--Pagan 4282,8 contra 1672,5.
 - Hora 0,878; clima 0,120; estação 0,168; ano 0,264.
+- Mostrar as três comparações de Tukey HSD: 0,142; 0,691; 0,550 (todas com p ajustado < 0,001).
 
 ## 8. Regressão e diagnósticos dos resíduos
 
-- Mostrar a fórmula do único modelo, com 58 parâmetros.
+- Mostrar a fórmula do único modelo, com 57 parâmetros.
 - ACF dos resíduos: 0,612 na defasagem 1, 0,243 na 24 e 0,200 na 168.
 - Ressaltar que o conjunto de teste é a principal evidência preditiva.
 
@@ -57,5 +60,6 @@
 
 - Hora por tipo de dia é a estrutura central da demanda.
 - Clima, estação, temperatura e ano fornecem ajuste.
-- Não há randomização e ainda existe dependência residual.
+- Não há randomização, ainda existe dependência residual e o tempo severo foi
+  agrupado na condição adversa.
 - Encerrar com a diferença entre associação e causalidade.

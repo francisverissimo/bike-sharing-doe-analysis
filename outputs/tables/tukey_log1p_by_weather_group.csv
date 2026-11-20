@@ -1,0 +1,4 @@
+group1,group2,meandiff,p-adj,lower,upper,reject
+Clear/partly cloudy,Mist/cloudy,-0.1416,0.0,-0.1994,-0.0838,True
+Clear/partly cloudy,Precipitation/adverse,-0.6913,0.0,-0.7839,-0.5987,True
+Mist/cloudy,Precipitation/adverse,-0.5497,0.0,-0.6498,-0.4496,True

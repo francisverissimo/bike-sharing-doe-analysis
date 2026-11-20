@@ -8,17 +8,22 @@
 - Range: 1--977 rentals per hour;
   skewness 1.277.
 - 165 timestamps are absent from the hourly calendar; no imputation was applied.
-- Weather situation level 4 has only three observations.
+- Weather levels 3 and 4 are pooled because level 4 has only three observations.
+- Mean rentals by weather condition: clear/partly cloudy
+  204.87, mist/cloudy 175.17,
+  precipitation/adverse 111.50.
 
 ## Factorial analysis
 
 - Hour has partial eta-squared 0.878; hour by working day has
   0.589.
-- Weather situation and season have partial eta-squared
+- Weather condition and season have partial eta-squared
   0.120 and 0.168, respectively.
-- The single log-response model uses 58 parameters,
+- Tukey HSD on `log1p(cnt)` compares the three pooled weather conditions;
+  all 3 of 3 adjusted contrasts are significant.
+- The single log-response model uses 57 parameters,
   adjusted R-squared 0.927,
-  AIC 15916.2, and BIC 16366.4.
+  AIC 15914.2, and BIC 16356.7.
 - Residual ACF is 0.612 at lag 1, 0.243 at lag 24, and
   0.200 at lag 168.
 

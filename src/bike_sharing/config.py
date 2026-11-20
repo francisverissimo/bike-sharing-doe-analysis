@@ -42,6 +42,11 @@ WEATHER_LABELS = {
     3: "Light precipitation",
     4: "Severe weather",
 }
+WEATHER_GROUP_LABELS = {
+    1: "Clear/partly cloudy",
+    2: "Mist/cloudy",
+    3: "Precipitation/adverse",
+}
 WORKING_DAY_LABELS = {0: "Non-working day", 1: "Working day"}
 YEAR_LABELS = {0: "2011", 1: "2012"}
 WEEKDAY_LABELS = {

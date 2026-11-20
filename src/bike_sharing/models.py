@@ -8,7 +8,7 @@ import statsmodels.formula.api as smf
 from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
 
 MODEL_FORMULA = (
-    "{target} ~ C(hr) * C(workingday) + C(weathersit) + C(season) "
+    "{target} ~ C(hr) * C(workingday) + C(weather_group) + C(season) "
     "+ temp + hum + windspeed + C(yr)"
 )
 

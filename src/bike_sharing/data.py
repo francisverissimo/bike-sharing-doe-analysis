@@ -13,6 +13,7 @@ from bike_sharing.config import (
     EXPECTED_COLUMNS,
     HOURLY_DATA,
     SEASON_LABELS,
+    WEATHER_GROUP_LABELS,
     WEATHER_LABELS,
     WEEKDAY_LABELS,
     WORKING_DAY_LABELS,
@@ -55,6 +56,13 @@ def load_hourly_data(path: Path = HOURLY_DATA) -> pd.DataFrame:
     data["weather_label"] = pd.Categorical(
         data["weathersit"].map(WEATHER_LABELS),
         categories=list(WEATHER_LABELS.values()),
+        ordered=True,
+    )
+    # Severe weather (level 4) occurs in only three hours, so it is pooled with
+    # light precipitation for inference and post-hoc comparisons.
+    data["weather_group"] = pd.Categorical(
+        data["weathersit"].clip(upper=3).map(WEATHER_GROUP_LABELS),
+        categories=list(WEATHER_GROUP_LABELS.values()),
         ordered=True,
     )
     data["workingday_label"] = pd.Categorical(

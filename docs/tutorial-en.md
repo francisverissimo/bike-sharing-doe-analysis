@@ -38,7 +38,7 @@ another.
 |---|---|
 | Observational unit | One recorded hour on a given date |
 | Response | `cnt`, total rentals in that hour |
-| Factors | Hour, working-day status, weather situation, season |
+| Factors | Hour, working-day status, pooled weather condition, season |
 | Covariates | Temperature, humidity, wind speed |
 | Levels | For example, `workingday` has levels 0 and 1 |
 | Randomization | None |
@@ -75,9 +75,10 @@ so assigning zero would introduce an unsupported assumption.
   redundant predictors.
 - `instant`: it is only a sequential row identifier.
 
-The four factors enter the analysis exactly as recorded: `hr`, `workingday`,
-`weathersit`, and `season`. Weather situation has four levels; level 4 occurs in
-only three hours, so its descriptive mean is imprecise.
+The analysis uses four factors: `hr`, `workingday`, a pooled weather condition
+from `weathersit`, and `season`. Raw level 4 occurs in only three hours, so levels
+3 and 4 are combined into one precipitation/adverse condition. The raw four-level
+variable is retained for data validation.
 
 ## 4. Descriptive analysis
 
@@ -105,14 +106,13 @@ have low or moderate demand, while some have very high demand.
 - **Main-effects plot:** shows the response mean at each factor level.
 - **Interaction plot:** shows one factor's means separately for levels of another.
 
-Observed weather means are:
+Observed means for the pooled weather conditions are:
 
-| Weather situation | Mean rentals/hour |
+| Weather condition | Mean rentals/hour |
 |---|---:|
 | Clear/partly cloudy | 204.87 |
 | Mist/cloudy | 175.17 |
-| Light precipitation | 111.58 |
-| Severe weather (3 hours) | 74.33 |
+| Precipitation/adverse | 111.50 |
 
 These are **unadjusted** means. Part of each difference may be related to hour,
 season, temperature, or other variables.
@@ -135,8 +135,8 @@ Adding 1 keeps the logarithm defined if a zero count appears in another dataset.
 
 | Response | Shapiro--Wilk \(W\) | Breusch--Pagan | Adjusted \(R^2\) |
 |---|---:|---:|---:|
-| `cnt` | 0.972 | 4281.6 | 0.812 |
-| `log1p(cnt)` | 0.949 | 1676.6 | 0.927 |
+| `cnt` | 0.972 | 4282.8 | 0.812 |
+| `log1p(cnt)` | 0.949 | 1672.5 | 0.927 |
 
 The \(p\)-values of both tests were below 0.001 on both scales. We use
 `log1p(cnt)` because it fits better and reduces the Breusch--Pagan statistic.
@@ -172,12 +172,13 @@ interpreted jointly with hour.
 The model was specified once:
 
 ```text
-log1p(cnt) ~ hr * workingday + weathersit + season
+log1p(cnt) ~ hr * workingday + weather_group + season
             + temp + hum + windspeed + yr
 ```
 
-In the `statsmodels` formula used in the code, the categorical terms are written
-`C(hr)`, `C(workingday)`, `C(weathersit)`, `C(season)`, and `C(yr)`.
+Here `weather_group` is the three-level pooled weather condition. In the
+`statsmodels` formula used in the code, the categorical terms are written
+`C(hr)`, `C(workingday)`, `C(weather_group)`, `C(season)`, and `C(yr)`.
 
 In a model formula, `hr * workingday` expands to:
 
@@ -194,8 +195,8 @@ Treating hour as one linear number would force a straight-line change from 00:00
 to 23:00. The actual pattern contains an overnight trough, two working-day peaks,
 and subsequent declines. We therefore use 24 categorical levels.
 
-The model has 58 parameters because a 24-level hour factor interacts with a
-binary factor. The interaction curve is more useful than listing every indicator
+The model has 57 parameters because a 24-level hour factor interacts with a
+binary factor and weather has three pooled levels. The interaction curve is more useful than listing every indicator
 coefficient.
 
 ## 8. ANOVA and effect size
@@ -212,17 +213,27 @@ Central results:
 
 | Term | F | p-value | Partial eta-squared |
 |---|---:|---:|---:|
-| Hour | 5415.36 | < 0.001 | 0.878 |
-| Working day | 12.26 | < 0.001 | 0.001 |
-| Weather situation | 786.71 | < 0.001 | 0.120 |
-| Season | 1163.59 | < 0.001 | 0.168 |
-| Year | 6203.57 | < 0.001 | 0.264 |
-| Hour × working day | 1079.34 | < 0.001 | 0.589 |
+| Hour | 5416.44 | < 0.001 | 0.878 |
+| Working day | 12.27 | < 0.001 | 0.001 |
+| Weather condition | 1180.12 | < 0.001 | 0.120 |
+| Season | 1163.90 | < 0.001 | 0.168 |
+| Year | 6204.50 | < 0.001 | 0.264 |
+| Hour × working day | 1079.55 | < 0.001 | 0.589 |
 
 Working day's p-value is small, but its main-effect size is much smaller than the
 interaction. This illustrates why “significant” versus “not significant” is not
 enough for interpretation. The model has adjusted \(R^2 = 0.927\),
-AIC 15916.2, and BIC 16366.4 on `log1p(cnt)`.
+AIC 15914.2, and BIC 16356.7 on `log1p(cnt)`.
+
+### Tukey HSD for weather
+
+Because the weather ANOVA term is significant, Tukey's HSD compares the three
+pooled conditions on `log1p(cnt)`. It controls the family-wise error rate across
+the three pairs and gives simultaneous confidence intervals. All three contrasts
+are significant after adjustment (\(p<0.001\)): clear versus mist 0.142
+(95% CI 0.084 to 0.199), clear versus adverse 0.691 (0.599 to 0.784), and mist
+versus adverse 0.550 (0.450 to 0.650). The adverse category is heterogeneous
+because it pools two rare raw levels.
 
 ## 9. Basic residual diagnostics
 
@@ -291,7 +302,7 @@ exponential of a mean is not the mean of the exponential.
 |---|---|
 | `analysis/00_validate_data.py` | Checks integrity, types, ranges, and gaps |
 | `analysis/01_descriptive_analysis.py` | Creates summaries, histograms, boxplots, and correlations |
-| `analysis/02_doe_analysis.py` | Creates main effects, interaction plot, and factorial ANOVA |
+| `analysis/02_doe_analysis.py` | Creates main effects, interaction plot, ANOVA, and weather Tukey HSD |
 | `analysis/03_assumptions_transformations.py` | Compares response scales and basic residual diagnostics |
 | `analysis/04_regression_models.py` | Fits the single regression model |
 | `analysis/05_temporal_validation.py` | Evaluates the model on the chronological test set |
@@ -324,3 +335,4 @@ make test
 8. Why is temporal splitting preferable to random splitting here?
 9. How do explanatory and predictive objectives differ?
 10. Why does a small p-value not guarantee practical importance?
+11. Why are weather levels 3 and 4 pooled, and what does Tukey HSD control?

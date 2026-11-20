@@ -85,8 +85,9 @@ make all
 
 This command audits the data and reproduces every table and figure used by the
 papers. The analysis uses one regression model with the `workingday × hr`
-interaction, weather situation, season, temperature, humidity, wind speed, and
-year.
+interaction, pooled weather condition, season, temperature, humidity, wind speed,
+and year. Tukey HSD compares the three pooled weather conditions on the log
+response.
 Individual stages are available as `make validate`, `make eda`,
 `make doe`, `make assumptions`, `make models`, `make prediction`, and
 `make report-assets`.

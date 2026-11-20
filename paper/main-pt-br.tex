@@ -30,13 +30,14 @@ um estudo observacional informado por DOE}
 This study analyses hourly bicycle rental demand using 17,379 observations from
 the Capital Bikeshare system in Washington, D.C., collected in 2011 and 2012.
 The data are observational and have a natural factorial and temporal structure.
-We describe the response, examine the factors hour, working-day status, weather
-situation and season through main-effect plots and the working-day by hour
-interaction, and report a factorial analysis of variance. The raw count and its
+We describe the response, examine the factors hour, working-day status, pooled
+weather condition and season through main-effect plots and the working-day by
+hour interaction, and report a factorial analysis of variance with Tukey HSD
+post-hoc comparisons of the three weather conditions. The raw count and its
 logarithm are compared, and the logarithmic scale is adopted. A single
-regression model with the working-day by hour interaction, weather situation,
-season, temperature, humidity, wind speed and year is fitted, followed by basic
-residual diagnostics. A strictly chronological split trains through September
+regression model with the working-day by hour interaction, pooled weather
+condition, season, temperature, humidity, wind speed and year is fitted,
+followed by basic residual diagnostics. A strictly chronological split trains through September
 2012 and tests on the last quarter of 2012. On the test set the model attains
 MAE 45.27, RMSE 72.97 and $R^2$ 0.869. The associations are strong, but the
 absence of randomisation prevents causal interpretation.
@@ -46,12 +47,14 @@ absence of randomisation prevents causal interpretation.
 Este estudo analisa a demanda horária por bicicletas usando 17.379 observações
 do sistema Capital Bikeshare de Washington, D.C., coletadas em 2011 e 2012. Os
 dados são observacionais e possuem estrutura fatorial e temporal natural.
-Descrevemos a resposta, examinamos os fatores hora, tipo de dia, situação
-climática e estação por meio de gráficos de efeitos principais e da interação
-entre tipo de dia e hora, e apresentamos uma análise de variância fatorial. A
-contagem bruta e seu logaritmo são comparados, adotando-se a escala logarítmica.
-Um único modelo de regressão com a interação tipo de dia por hora, situação
-climática, estação, temperatura, umidade, velocidade do vento e ano é ajustado,
+Descrevemos a resposta, examinamos os fatores hora, tipo de dia, condição
+climática agrupada e estação por meio de gráficos de efeitos principais e da
+interação entre tipo de dia e hora, e apresentamos uma análise de variância
+fatorial com comparações post-hoc de Tukey HSD entre as três condições
+climáticas. A contagem bruta e seu logaritmo são comparados, adotando-se a
+escala logarítmica. Um único modelo de regressão com a interação tipo de dia
+por hora, condição climática agrupada, estação, temperatura, umidade,
+velocidade do vento e ano é ajustado,
 seguido de diagnósticos básicos dos resíduos. Uma divisão estritamente temporal
 treina até setembro de 2012 e testa no último trimestre de 2012. No conjunto de
 teste, o modelo atinge MAE 45,27, RMSE 72,97 e $R^2$ 0,869. As associações são
@@ -85,17 +88,20 @@ observada.
 A resposta, \texttt{cnt}, é o total de aluguéis e equivale a
 \texttt{casual + registered}. Ambos os componentes são excluídos como
 preditores porque causariam vazamento da resposta. Os quatro fatores são hora
-(\texttt{hr}), tipo de dia (\texttt{workingday}), situação climática
-(\texttt{weathersit}) e estação (\texttt{season}). Temperatura, umidade e
-velocidade do vento são covariáveis contínuas padronizadas. A temperatura
+(\texttt{hr}), tipo de dia (\texttt{workingday}), condição climática
+(\texttt{weathersit}) e estação (\texttt{season}). Como o nível 4 de
+\texttt{weathersit} ocorre em apenas três horas, os níveis 3 e 4 são agrupados
+em uma única condição de precipitação/tempo adverso para modelos, gráficos e
+comparações post-hoc. Temperatura, umidade e velocidade do vento são covariáveis
+contínuas padronizadas. A temperatura
 aparente não é usada porque sua correlação com a temperatura é $0{,}988$.
 
 O desenho é observacional, não randomizado, sem blocos e naturalmente fatorial;
 não é um experimento controlado. As observações são ordenadas no tempo e não
 podem ser consideradas independentes. Há 165 horários ausentes no calendário
-horário, e não foi feita imputação. O nível 4 da situação climática ocorre em
-apenas três horas, de modo que sua estimativa descritiva é necessariamente
-imprecisa.
+horário, e não foi feita imputação. A variável original com quatro níveis é
+mantida na validação dos dados, enquanto a condição agrupada com três níveis é
+usada na inferência.
 
 \section{Métodos}
 
@@ -104,7 +110,8 @@ imprecisa.
 Calculamos tamanhos amostrais, médias, medianas, desvios-padrão, quartis,
 histogramas, boxplots, uma série temporal diária e correlações de Pearson para
 \texttt{cnt}. Os gráficos de efeitos principais mostram a média de cada nível
-dos quatro fatores com intervalos de confiança de 95\%. Um segundo gráfico mostra
+dos quatro fatores, incluindo as três condições climáticas agrupadas, com
+intervalos de confiança de 95\%. Um segundo gráfico mostra
 a demanda média por hora separadamente para dias úteis e não úteis, tornando
 visível a interação entre hora e tipo de dia.
 
@@ -116,6 +123,15 @@ entre hora e tipo de dia. Uma análise de variância tipo II reporta o eta
 quadrado parcial de cada termo \cite{montgomery2017}. Como o desenho é
 observacional e desbalanceado, a magnitude dos efeitos e a validação temporal
 são enfatizadas em vez da significância isoladamente.
+
+\subsection{Comparações post-hoc do clima}
+
+Como o efeito geral do clima é significativo, o procedimento da diferença
+honestamente significativa (HSD) de Tukey \cite{tukey1949} compara as três
+condições climáticas agrupadas em $\log(1+\texttt{cnt})$. O procedimento controla
+a taxa de erro familiar nas três comparações pareadas e apresenta intervalos de
+confiança simultâneos de 95\%. Não é feita comparação separada para as três
+horas com tempo severo, agrupadas na condição adversa.
 
 \subsection{Escala da resposta}
 
@@ -131,10 +147,11 @@ não implica que a pressuposição de normalidade seja satisfeita.
 
 Um único modelo de regressão foi especificado antes do ajuste:
 \begin{center}
-\texttt{log1p(cnt) $\sim$ C(hr) * C(workingday) + C(weathersit) + C(season)} \\
+\texttt{log1p(cnt) $\sim$ C(hr) * C(workingday) + C(weather\_group) + C(season)} \\
 \texttt{$\quad$ + temp + hum + windspeed + C(yr).}
 \end{center}
-A interação inclui ambos os efeitos principais componentes. Os diagnósticos
+Aqui, \texttt{weather\_group} é a condição climática agrupada em três níveis. A
+interação inclui ambos os efeitos principais componentes. Os diagnósticos
 básicos consistem em gráficos de resíduos versus ajustados, gráficos normais
 Q--Q e da ACF dos resíduos em defasagens de horas observadas. A correção de
 smearing de Duan foi usada para transformar as previsões de volta à escala de
@@ -165,8 +182,9 @@ distribuição bruta é assimétrica à direita (assimetria $1{,}277$).
 \end{table}
 
 A demanda horária média foi $204{,}87$ com tempo claro ou parcialmente nublado,
-$175{,}17$ com névoa ou nublado, $111{,}58$ com precipitação leve e $74{,}33$ com
-tempo severo, este último com apenas três horas. As médias sazonais foram
+$175{,}17$ com névoa ou nublado e $111{,}50$ na condição agrupada de
+precipitação/tempo adverso, que reúne 1.419 horas de precipitação leve e as três
+horas de tempo severo. As médias sazonais foram
 $111{,}11$ na primavera, $208{,}34$ no verão, $236{,}02$ no outono e $198{,}87$
 no inverno. Essas associações não ajustadas refletem desequilíbrios entre as
 demais condições.
@@ -190,7 +208,7 @@ mais amplo ao meio do dia.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\columnwidth]{../outputs/figures/main_effects.png}
-\caption{Gráficos de efeitos principais para hora, tipo de dia, situação climática e estação.}
+\caption{Gráficos de efeitos principais para hora, tipo de dia, condição climática agrupada e estação.}
 \label{fig:main-effects}
 \end{figure}
 
@@ -205,7 +223,7 @@ mais amplo ao meio do dia.
 
 A Tabela~\ref{tab:anova} apresenta a ANOVA fatorial tipo II. A hora possui eta
 quadrado parcial $0{,}878$ e a interação hora por tipo de dia, $0{,}589$. A
-situação climática e a estação contribuem com $0{,}120$ e $0{,}168$,
+condição climática e a estação contribuem com $0{,}120$ e $0{,}168$,
 respectivamente, e o ano com $0{,}264$. O efeito principal de tipo de dia é
 pequeno ($0{,}001$), coerente com o gráfico de interação.
 
@@ -216,14 +234,31 @@ pequeno ($0{,}001$), coerente com o gráfico de interação.
 \resizebox{\columnwidth}{!}{\input{../outputs/tables/paper_anova.tex}}
 \end{table}
 
+\subsection{Comparações post-hoc do clima}
+
+A Tabela~\ref{tab:tukey} apresenta as três comparações de Tukey HSD na escala
+logarítmica, escritas como a primeira condição menos a segunda. Todas são
+significativas após ajuste ($p<0{,}001$). Tempo claro excede névoa por $0{,}142$
+(IC simultâneo de 95\%: $0{,}084$ a $0{,}199$) e a condição adversa por
+$0{,}691$ ($0{,}599$ a $0{,}784$); névoa também excede a condição adversa por
+$0{,}550$ ($0{,}450$ a $0{,}650$). A ordem concorda com as médias não ajustadas,
+mas a categoria adversa é heterogênea por agrupar dois níveis brutos raros.
+
+\begin{table}[ht]
+\centering
+\caption{Comparações de Tukey HSD entre condições climáticas agrupadas na resposta logarítmica.}
+\label{tab:tukey}
+\resizebox{\columnwidth}{!}{\input{../outputs/tables/paper_tukey.tex}}
+\end{table}
+
 \subsection{Escala da resposta e diagnósticos dos resíduos}
 
 A Tabela~\ref{tab:scales} compara as duas escalas. O $R^2$ ajustado sobe de
 $0{,}812$ em \texttt{cnt} para $0{,}927$ em $\log(1+\texttt{cnt})$, enquanto a
-estatística de Breusch--Pagan cai de $4281{,}6$ para $1676{,}6$. Shapiro--Wilk
+estatística de Breusch--Pagan cai de $4282{,}8$ para $1672{,}5$. Shapiro--Wilk
 rejeita normalidade nas duas escalas, de modo que a escolha do log se baseia em
 variância e ajuste, não em uma afirmação de resíduos normais. O modelo ajustado
-usa 58 parâmetros, com AIC $15916{,}2$ e BIC $16366{,}4$.
+usa 57 parâmetros, com AIC $15914{,}2$ e BIC $16356{,}7$.
 
 \begin{table}[ht]
 \centering
@@ -269,12 +304,13 @@ extrapolação de curto prazo dentro do sistema observado em dois anos.
 \section{Discussão e limitações}
 
 A hora é o fator dominante, mas sua forma depende fortemente do tipo de dia, que
-é exatamente o que a análise fatorial permite revelar. Situação climática,
+é exatamente o que a análise fatorial permite revelar. Condição climática,
 estação, temperatura e ano fornecem ajuste relevante. A análise é limitada pela
 ausência de randomização: eventos não medidos, expansão do sistema e tendências
 temporais podem confundir as estimativas. A autocorrelação residual permanece
-após os fatores incluídos, e três horas com tempo severo não permitem uma
-estimativa separada precisa. Modelos de efeitos mistos, autoregressivos e de
+após os fatores incluídos, e agrupar as três horas com tempo severo à
+precipitação leve impede uma estimativa separada para esse nível bruto mais
+raro. Modelos de efeitos mistos, autoregressivos e de
 distribuição de contagem não foram investigados.
 
 \section{Conclusão}
