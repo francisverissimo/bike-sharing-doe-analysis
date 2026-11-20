@@ -16,32 +16,16 @@ EXPLANATORY_FORMULAS = {
         "{target} ~ C(hr) * C(workingday) + C(weather_group) + C(season) "
         "+ temp + hum + windspeed + C(yr)"
     ),
-    "M2_weather_hour": (
-        "{target} ~ C(hr) * C(workingday) + C(weather_group) * C(hr) + C(season) "
-        "+ temp + hum + windspeed + C(yr)"
-    ),
-    "M3_season_hour": (
-        "{target} ~ C(hr) * C(workingday) + C(weather_group) * C(hr) "
-        "+ C(season) * C(hr) + temp + hum + windspeed + C(yr)"
-    ),
-    "M4_temperature_curve": (
-        "{target} ~ C(hr) * C(workingday) + C(weather_group) * C(hr) "
-        "+ C(season) * C(hr) + temp + I(temp ** 2) + hum + windspeed + C(yr)"
-    ),
 }
 
 PREDICTIVE_FORMULAS = {
     "P0_main_effects": (
         "log1p_cnt ~ C(hr) + C(workingday) + C(weather_group) + C(season) "
-        "+ temp + I(temp ** 2) + hum + windspeed + time_index_days"
+        "+ temp + hum + windspeed + time_index_days"
     ),
     "P1_workingday_hour": (
         "log1p_cnt ~ C(hr) * C(workingday) + C(weather_group) + C(season) "
-        "+ temp + I(temp ** 2) + hum + windspeed + time_index_days"
-    ),
-    "P2_weather_hour": (
-        "log1p_cnt ~ C(hr) * C(workingday) + C(weather_group) * C(hr) + C(season) "
-        "+ temp + I(temp ** 2) + hum + windspeed + time_index_days"
+        "+ temp + hum + windspeed + time_index_days"
     ),
 }
 

@@ -78,7 +78,7 @@ def plot_main_effects(data: pd.DataFrame) -> None:
 
 
 def plot_interactions(data: pd.DataFrame) -> None:
-    figure, axes = plt.subplots(3, 1, figsize=(10, 11), sharex=True)
+    figure, axis = plt.subplots(figsize=(9, 4.8))
     sns.lineplot(
         data=data,
         x="hr",
@@ -87,34 +87,17 @@ def plot_interactions(data: pd.DataFrame) -> None:
         estimator="mean",
         errorbar=("ci", 95),
         seed=42,
-        ax=axes[0],
+        ax=axis,
     )
-    axes[0].set(title="Hour × working-day status", ylabel="Mean hourly rentals", xlabel="")
-    sns.lineplot(
-        data=data,
-        x="hr",
-        y="cnt",
-        hue="weather_group",
-        estimator="mean",
-        errorbar=None,
-        ax=axes[1],
+    axis.set(
+        title="Primary interaction: hour × working-day status",
+        ylabel="Mean hourly rentals",
+        xlabel="Hour",
     )
-    axes[1].set(title="Hour × weather", ylabel="Mean hourly rentals", xlabel="")
-    sns.lineplot(
-        data=data,
-        x="hr",
-        y="cnt",
-        hue="season_label",
-        estimator="mean",
-        errorbar=None,
-        ax=axes[2],
-    )
-    axes[2].set(title="Hour × season", ylabel="Mean hourly rentals", xlabel="Hour")
-    for axis in axes:
-        axis.legend(frameon=False, title=None, ncol=2)
-        axis.set_xticks(range(0, 24, 2))
+    axis.legend(frameon=False, title=None, ncol=2)
+    axis.set_xticks(range(0, 24, 2))
     figure.tight_layout()
-    save_figure(figure, FIGURES_DIR / "interaction_plots.png")
+    save_figure(figure, FIGURES_DIR / "primary_interaction.png")
 
 
 def main() -> None:
@@ -123,7 +106,6 @@ def main() -> None:
     data = load_hourly_data()
 
     one_way_tests(data).to_csv(TABLES_DIR / "one_way_tests.csv", index=False)
-    save_tukey(data, "season")
     save_tukey(data, "weather_group")
 
     formula_m1 = EXPLANATORY_FORMULAS["M1_workingday_hour"].format(target="log1p_cnt")
@@ -144,7 +126,7 @@ def main() -> None:
 
     plot_main_effects(data)
     plot_interactions(data)
-    print("DOE outputs generated: main effects, interactions, ANOVA, Tukey, and HAC inference.")
+    print("DOE outputs generated: main effects, primary interaction, ANOVA, Tukey, and HAC.")
 
 
 if __name__ == "__main__":
