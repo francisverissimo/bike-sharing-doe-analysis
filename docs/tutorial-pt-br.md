@@ -150,19 +150,23 @@ contagem zero apareça em outro conjunto de dados.
 
 Para a estrutura M1:
 
-| Resposta | \(R^2\) ajustado | Breusch--Pagan | Durbin--Watson |
+| Resposta | Shapiro--Wilk \(W\) | Breusch--Pagan | \(R^2\) ajustado |
 |---|---:|---:|---:|
-| `cnt` | 0,812 | 4282,8 | 0,453 |
-| `sqrt(cnt)` | 0,893 | 2039,7 | 0,474 |
-| `log1p(cnt)` | 0,927 | 1672,5 | 0,775 |
+| `cnt` | 0,972 | 4282,8 | 0,812 |
+| `sqrt(cnt)` | 0,984 | 2039,7 | 0,893 |
+| `log1p(cnt)` | 0,949 | 1672,5 | 0,927 |
 
-Escolhemos `log1p(cnt)` porque apresentou melhor ajuste e a menor evidência
-relativa de heterocedasticidade entre as opções simples. A transformação não
-resolveu tudo: normalidade, homocedasticidade e independência ainda são
-rejeitadas pelos testes formais.
+Os valores de \(p\) de Shapiro--Wilk e Breusch--Pagan ficaram abaixo de 0,001
+nas três escalas. Escolhemos `log1p(cnt)` porque apresentou melhor ajuste e a
+menor evidência relativa de heterocedasticidade. Note que Shapiro--Wilk sozinho
+favoreceria `sqrt(cnt)`; a decisão pelo log é um compromisso entre variância e
+ajuste, não uma aprovação da normalidade.
 
-Com 17 mil observações, testes como Shapiro--Wilk detectam até desvios pequenos.
-Por isso, olhamos testes, gráficos e tamanho dos desvios em conjunto.
+Jarque--Bera, Levene, Box--Cox e Durbin--Watson ainda podem ser calculados a
+partir dos artefatos em `outputs/tables/`, mas não fazem parte da narrativa
+principal do artigo. Com 17 mil observações, testes como Shapiro--Wilk detectam
+até desvios pequenos. Por isso, olhamos testes, gráficos e tamanho dos desvios em
+conjunto.
 
 ## 6. Efeito principal e interação
 
@@ -282,16 +286,17 @@ O *Variance Inflation Factor* mede quanto a correlação entre preditores aument
 variância de um coeficiente. A remoção de `atemp` reduziu os VIF das variáveis
 numéricas selecionadas para aproximadamente 1,1 ou menos.
 
-### Durbin--Watson e ACF
+### ACF e dependência temporal
 
-Durbin--Watson próximo de 2 sugere pouca autocorrelação de primeira ordem. Em M1,
-o valor foi 0,775, indicando autocorrelação positiva. A ACF residual foi:
+A função de autocorrelação (ACF) dos resíduos de M1 foi:
 
 - lag 1: 0,612;
 - lag 24: 0,243;
 - lag 168: 0,200.
 
-Os lags são horas **observadas**, pois existem lacunas no calendário.
+O teste de Durbin--Watson foi mantido apenas nos artefatos gerados; na narrativa
+principal, a ACF resume melhor a dependência em várias escalas temporais. Os lags
+são horas **observadas**, pois existem lacunas no calendário.
 
 ### Por que usar HAC?
 

@@ -32,6 +32,11 @@ passo:
 
 Também existe uma [versão equivalente em inglês](docs/tutorial-en.md).
 
+O artigo no formato SBC também é mantido nas duas línguas:
+
+- [Artigo em inglês](paper/main.tex) — fonte canônica para submissão
+- [Artigo em português brasileiro](paper/main-pt-br.tex) — versão para estudo e revisão
+
 ## Dataset
 
 A análise utiliza `dataset/hour.csv`, com 17.379 observações horárias do Capital
@@ -66,8 +71,8 @@ make test
 ```
 
 Os scripts numerados ficam em `analysis/`, funções compartilhadas em
-`src/bike_sharing/`, resultados reproduzíveis em `outputs/` e o artigo SBC em
-`paper/main.tex`.
+`src/bike_sharing/`, resultados reproduzíveis em `outputs/` e os artigos SBC em
+`paper/` (inglês e português brasileiro).
 
 ## Documentação
 
@@ -76,7 +81,8 @@ Os scripts numerados ficam em `analysis/`, funções compartilhadas em
 - Guia didático em português: `docs/tutorial-pt-br.md`
 - Guia didático em inglês: `docs/tutorial-en.md`
 - Resumo dos resultados em português: `outputs/resultados_mvp-pt-br.md`
-- Artigo para entrega: `paper/main.tex`
+- Artigo para entrega (inglês): `paper/main.tex`
+- Artigo em português brasileiro: `paper/main-pt-br.tex`
 - Roteiro da apresentação: `presentation/roteiro-pt-br.md`
 
 ## Licenciamento

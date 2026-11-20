@@ -29,6 +29,11 @@ Read the complete didactic walkthrough in either language:
 - [Português (Brasil)](docs/tutorial-pt-br.md)
 - [English](docs/tutorial-en.md)
 
+The SBC article is also maintained in both languages:
+
+- [English article](paper/main.tex) — canonical submission source
+- [Brazilian Portuguese article](paper/main-pt-br.tex) — study and review version
+
 ## Dataset
 
 The analysis uses `dataset/hour.csv`, which contains 17,379 hourly observations.

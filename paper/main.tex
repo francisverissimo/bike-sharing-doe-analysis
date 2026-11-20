@@ -101,23 +101,25 @@ histograms, boxplots, temporal plots, and Pearson correlations. Main-effect plot
 show group means with 95\% confidence intervals. The interaction plot focuses on
 the prespecified hour by working-day relationship.
 
-One-way ANOVA and median-centered Levene tests were calculated on the raw and
-log-transformed responses. Factorial models were estimated with ordinary least
-squares. Nested partial F tests evaluated the incremental contribution of
-interaction, and a type-II ANOVA table reports partial eta-squared. Tukey HSD was
-used only for descriptive weather contrasts. Because the design is observational
-and unbalanced, inferential conclusions rely on effect magnitude and uncertainty,
-not p-values alone \cite{montgomery2017}.
+One-way ANOVA was calculated on the raw and log-transformed responses. Factorial
+models were estimated with ordinary least squares. Nested partial F tests
+evaluated the incremental contribution of interaction, and a type-II ANOVA table
+reports partial eta-squared. Tukey HSD was used only for descriptive weather
+contrasts. Because the design is observational and unbalanced, inferential
+conclusions rely on effect magnitude and uncertainty, not p-values alone
+\cite{montgomery2017}.
 
 \subsection{Transformations and explanatory regression}
 
-Raw \texttt{cnt}, $\sqrt{cnt}$, and $\log(1+cnt)$ were compared using Q--Q,
-residual-versus-fitted, scale-location, Breusch--Pagan, Shapiro--Wilk (a fixed
-5,000-residual subset), Jarque--Bera, and Durbin--Watson diagnostics. Box--Cox
-maximum likelihood was also calculated \cite{boxcox1964}. The logarithmic scale
-was retained for the MVP because it most reduced the Breusch--Pagan statistic,
-improved adjusted $R^2$, and supports a multiplicative interpretation, although
-none of the candidate scales fully satisfied classical assumptions.
+Raw \texttt{cnt}, $\sqrt{cnt}$, and $\log(1+cnt)$ were compared on the M1
+structure using residual Q--Q plots and two formal diagnostics: Shapiro--Wilk for
+residual normality, calculated on a fixed 5,000-residual subset, and the
+studentized Breusch--Pagan test for constant residual variance. Jarque--Bera,
+Levene, Box--Cox, and Durbin--Watson were not retained in the main narrative;
+their values remain in the generated diagnostics. The logarithmic scale was
+retained because it most reduced Breusch--Pagan, improved adjusted $R^2$, and
+supports a multiplicative interpretation, although no candidate scale fully
+satisfied the classical assumptions.
 
 Two hierarchical explanatory models were fitted. M0 contains the main effects of
 hour, working-day status, weather, season, temperature, humidity, wind speed, and
@@ -198,13 +200,20 @@ weather Tukey contrasts on $\log(1+cnt)$ rejected equality ($p<0.001$).
 
 \subsection{Model diagnostics and explanatory fit}
 
-The Box--Cox estimate was 0.305. For M1, adjusted $R^2$ rose from 0.812 on the
-raw response to 0.893 on the square-root scale and 0.927 on the log scale. The
-Breusch--Pagan statistic fell from 4282.8 to 2039.7 and 1672.5, respectively, but
-all associated p-values remained below 0.001. The log-scale Durbin--Watson
-statistic was 0.775 in M1. Residual ACF was 0.612 at lag 1,
-0.243 at lag 24, and 0.200 at lag 168. Thus, the model is informative but its
-classical independence assumption is violated.
+Table~\ref{tab:diagnostics} reports the two retained diagnostics. Shapiro--Wilk
+favoured the square-root scale ($W=0.984$), whereas Breusch--Pagan and adjusted
+$R^2$ favoured \texttt{log1p(cnt)}. All p-values were below 0.001, so no candidate
+scale passed the formal checks; the choice of the log scale is a variance-and-fit
+compromise rather than a claim of normality. Residual ACF was 0.612 at lag 1,
+0.243 at lag 24, and 0.200 at lag 168, so the classical independence assumption
+is also violated and HAC uncertainty is required.
+
+\begin{table}[ht]
+\centering
+\caption{Minimal transformation diagnostics on the M1 structure.}
+\label{tab:diagnostics}
+\resizebox{\columnwidth}{!}{\input{../outputs/tables/paper_diagnostics.tex}}
+\end{table}
 
 Adding hour by working day produced a large improvement, raising adjusted
 $R^2$ from 0.824 to 0.927 and reducing BIC from 31587.2 to 16356.7

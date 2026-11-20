@@ -6,10 +6,12 @@
 - Descriptive statistics, distributions, boxplots, time series, and correlations.
 - Main-effect plots and the primary `hour × working day` interaction plot.
 - One-way and factorial ANOVA, effect sizes, Tukey contrasts, and HAC tables.
-- Raw, square-root, log, and Box--Cox diagnostic evidence.
+- Raw, square-root, and log comparisons using Shapiro--Wilk, Breusch--Pagan,
+  residual ACF, and Q--Q plots.
 - The focused M0--M1 explanatory comparison and influence diagnostics.
 - Expanding-window model selection and untouched Q4 2012 holdout evaluation.
-- Generated report tables, an SBC-format article draft, and presentation outline.
+- Generated report tables, SBC-format article drafts in English and Brazilian
+  Portuguese, and presentation outlines in both languages.
 - Automated tests, linting, and one-command reproduction through `make all`.
 - Equivalent didactic guides in English and Brazilian Portuguese.
 
@@ -24,9 +26,12 @@
 ## Required before final submission
 
 - Insert both authors' names, affiliations, and email addresses.
-- Compile and visually inspect `paper/main.tex` in an SBC-compatible LaTeX environment.
+- Compile and visually inspect both `paper/main.tex` and `paper/main-pt-br.tex`
+  in an SBC-compatible LaTeX environment.
 - Confirm that the paper remains within 6–12 pages and reduce tables if necessary.
-- Review individual HAC coefficients and influential observations in the discussion.
+- Keep individual HAC coefficients, influential observations, Jarque--Bera,
+  Levene, Box--Cox, and Durbin--Watson as supplementary evidence rather than
+  article-body material.
 - Keep nonlinear, secondary-interaction, count, and autoregressive models outside
   the final scope unless the professor explicitly requests them.
 - Have both authors independently reproduce `make all` from a clean clone.

@@ -25,9 +25,9 @@
 - O M1 possui R² ajustado 0,927, AIC
   15.914,2 e BIC 16.356,7
   para `log1p(cnt)`.
-- O Durbin–Watson residual é 0,775;
-  ainda há
-  dependência temporal, portanto são apresentados erros-padrão HAC(168).
+- A ACF residual é 0,612 na defasagem 1,
+  0,243 na defasagem 24 e 0,200 na
+  defasagem 168; portanto são apresentados erros-padrão HAC(168).
 
 ## Predição
 

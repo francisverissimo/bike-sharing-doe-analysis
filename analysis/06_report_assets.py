@@ -24,6 +24,11 @@ def format_p_value(value: float) -> str:
     return "$<0.001$" if value < 0.001 else f"{value:.3f}"
 
 
+def format_test_stat(stat: float, pvalue: float, decimals: int) -> str:
+    """Combine a test statistic and its p-value in one LaTeX cell."""
+    return f"{stat:.{decimals}f} ({format_p_value(pvalue)})"
+
+
 def format_pt_br(value: float, decimals: int = 2) -> str:
     """Format a number with Brazilian decimal and thousands separators."""
     formatted = f"{value:,.{decimals}f}"
@@ -47,6 +52,23 @@ def main() -> None:
         }
     )
     write_latex(descriptive, "paper_descriptive.tex", "rrrrrrrr")
+
+    diagnostics = pd.read_csv(TABLES_DIR / "transformation_diagnostics.csv")
+    paper_diagnostics = pd.DataFrame(
+        {
+            "Scale": [r"cnt", r"$\sqrt{cnt}$", r"$\log(1+cnt)$"],
+            "Shapiro--Wilk $W$ ($p$)": [
+                format_test_stat(row.shapiro_w_5000, row.shapiro_p_5000, 3)
+                for row in diagnostics.itertuples()
+            ],
+            "Breusch--Pagan LM ($p$)": [
+                format_test_stat(row.breusch_pagan, row.breusch_pagan_p, 1)
+                for row in diagnostics.itertuples()
+            ],
+            "Adjusted $R^2$": [f"{value:.3f}" for value in diagnostics["r_squared_adj"]],
+        }
+    )
+    write_latex(paper_diagnostics, "paper_diagnostics.tex", "lrrr", escape=False)
 
     anova = pd.read_csv(TABLES_DIR / "final_explanatory_anova.csv").rename(
         columns={"Unnamed: 0": "Term", "partial_eta_sq": "Partial eta-squared"}
@@ -110,10 +132,10 @@ def main() -> None:
     validation["Model"] = ["Baseline", "P0", "P1"]
     write_latex(validation, "paper_holdout.tex", "lrrrr")
 
-    final_diagnostics = pd.read_csv(TABLES_DIR / "final_explanatory_diagnostics.csv").iloc[0]
     final_model = models.iloc[-1]
     holdout = pd.read_csv(TABLES_DIR / "final_holdout_result.csv").iloc[0]
     weather = pd.read_csv(TABLES_DIR / "summary_by_weather.csv")
+    acf = pd.read_csv(TABLES_DIR / "residual_acf_log_model.csv").set_index("lag")["acf"]
     interaction_eta = float(
         anova.loc[anova["Term"] == "Hour x working day", "Partial eta-squared"].iloc[0]
     )
@@ -141,8 +163,8 @@ def main() -> None:
 - Hour has partial eta-squared {hour_eta:.3f} in M1.
 - M1 has adjusted R-squared {final_model['Adjusted R-squared']:.3f},
   AIC {final_model['AIC']:.1f}, and BIC {final_model['BIC']:.1f} on `log1p(cnt)`.
-- Residual Durbin–Watson is {final_diagnostics['durbin_watson']:.3f}; temporal
-  dependence remains and HAC(168) uncertainty is therefore reported.
+- Residual ACF is {acf[1]:.3f} at lag 1, {acf[24]:.3f} at lag 24, and
+  {acf[168]:.3f} at lag 168; HAC(168) uncertainty is therefore reported.
 
 ## Prediction
 
@@ -183,9 +205,9 @@ not establish causal effects.
 - O M1 possui R² ajustado {format_pt_br(final_model['Adjusted R-squared'], 3)}, AIC
   {format_pt_br(final_model['AIC'], 1)} e BIC {format_pt_br(final_model['BIC'], 1)}
   para `log1p(cnt)`.
-- O Durbin–Watson residual é {format_pt_br(final_diagnostics['durbin_watson'], 3)};
-  ainda há
-  dependência temporal, portanto são apresentados erros-padrão HAC(168).
+- A ACF residual é {format_pt_br(acf[1], 3)} na defasagem 1,
+  {format_pt_br(acf[24], 3)} na defasagem 24 e {format_pt_br(acf[168], 3)} na
+  defasagem 168; portanto são apresentados erros-padrão HAC(168).
 
 ## Predição
 
