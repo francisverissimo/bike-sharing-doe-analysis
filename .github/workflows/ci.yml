@@ -46,14 +46,22 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Compile SBC paper
+      - name: Compile English SBC paper
         uses: xu-cheng/latex-action@v4
         with:
           root_file: main.tex
           working_directory: paper
 
-      - name: Upload paper PDF
+      - name: Compile Brazilian Portuguese SBC paper
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: main-pt-br.tex
+          working_directory: paper
+
+      - name: Upload paper PDFs
         uses: actions/upload-artifact@v4
         with:
-          name: mvp-paper
-          path: paper/main.pdf
+          name: sbc-papers
+          path: |
+            paper/main.pdf
+            paper/main-pt-br.pdf

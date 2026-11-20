@@ -9,7 +9,8 @@
 - Raw, square-root, log, and Box--Cox diagnostic evidence.
 - The focused M0--M1 explanatory comparison and influence diagnostics.
 - Expanding-window model selection and untouched Q4 2012 holdout evaluation.
-- Generated report tables, an SBC-format article draft, and presentation outline.
+- Generated report tables, SBC-format article drafts in English and Brazilian
+  Portuguese, and presentation outlines in both languages.
 - Automated tests, linting, and one-command reproduction through `make all`.
 - Equivalent didactic guides in English and Brazilian Portuguese.
 
@@ -24,7 +25,8 @@
 ## Required before final submission
 
 - Insert both authors' names, affiliations, and email addresses.
-- Compile and visually inspect `paper/main.tex` in an SBC-compatible LaTeX environment.
+- Compile and visually inspect both `paper/main.tex` and `paper/main-pt-br.tex`
+  in an SBC-compatible LaTeX environment.
 - Confirm that the paper remains within 6–12 pages and reduce tables if necessary.
 - Review individual HAC coefficients and influential observations in the discussion.
 - Keep nonlinear, secondary-interaction, count, and autoregressive models outside

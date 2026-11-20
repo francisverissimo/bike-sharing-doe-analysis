@@ -218,3 +218,23 @@ assignment.
 **Consequence:** `docs/tutorial-pt-br.md` and `docs/tutorial-en.md` explain the
 design, transformation, interaction, ANOVA, regression diagnostics, HAC,
 temporal validation, results, code organization, and review questions.
+
+## 2026-11-20 — Add a Brazilian Portuguese article version
+
+**Question:** Should the Portuguese explanation be limited to tutorials, or should
+the article itself also be available in Portuguese?
+
+**Evidence:** The authors are reviewing statistical concepts while learning how
+the analysis was implemented. A Portuguese article with the same structure,
+tables, figures, and results as the English draft supports that review and the
+presentation without changing the scientific scope.
+
+**Decision:** Keep `paper/main.tex` as the canonical English submission source and
+add `paper/main-pt-br.tex` as an equivalent Brazilian Portuguese version. The
+English abstract is retained in the Portuguese file, followed by the Portuguese
+`resumo`. CI compiles both files.
+
+**Consequence:** Both article sources must be updated together whenever a result,
+table, figure, citation, or conclusion changes. This entry refines the earlier
+statement that only the article would remain in English; the English file remains
+canonical for submission, while the Portuguese file is a study and review aid.
