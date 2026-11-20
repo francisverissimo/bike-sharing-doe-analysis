@@ -21,8 +21,8 @@
 - Hour has partial eta-squared 0.878 in M1.
 - M1 has adjusted R-squared 0.927,
   AIC 15914.2, and BIC 16356.7 on `log1p(cnt)`.
-- Residual Durbin–Watson is 0.775; temporal
-  dependence remains and HAC(168) uncertainty is therefore reported.
+- Residual ACF is 0.612 at lag 1, 0.243 at lag 24, and
+  0.200 at lag 168; HAC(168) uncertainty is therefore reported.
 
 ## Prediction
 

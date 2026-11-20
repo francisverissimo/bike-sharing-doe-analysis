@@ -110,25 +110,25 @@ efeitos principais mostram médias por grupo com intervalos de confiança de
 95\%. O gráfico de interação concentra-se na relação pré-especificada entre hora
 e tipo de dia.
 
-ANOVA de um fator e testes de Levene centralizados pela mediana foram
-calculados nas respostas bruta e log-transformada. Modelos fatoriais foram
-estimados por mínimos quadrados ordinários. Testes F parciais aninhados
-avaliaram a contribuição incremental da interação, e uma tabela de ANOVA tipo II
-reporta eta quadrado parcial. Tukey HSD foi usado apenas para contrastes
-climáticos descritivos. Como o desenho é observacional e desbalanceado, as
-conclusões inferenciais dependem da magnitude dos efeitos e da incerteza, não
-apenas de valores-p \cite{montgomery2017}.
+ANOVA de um fator foi calculada nas respostas bruta e log-transformada. Modelos
+fatoriais foram estimados por mínimos quadrados ordinários. Testes F parciais
+aninhados avaliaram a contribuição incremental da interação, e uma tabela de
+ANOVA tipo II reporta eta quadrado parcial. Tukey HSD foi usado apenas para
+contrastes climáticos descritivos. Como o desenho é observacional e
+desbalanceado, as conclusões inferenciais dependem da magnitude dos efeitos e da
+incerteza, não apenas de valores-p \cite{montgomery2017}.
 
 \subsection{Transformações e regressão explicativa}
 
-As escalas \texttt{cnt}, $\sqrt{cnt}$ e $\log(1+cnt)$ foram comparadas com
-diagnósticos Q--Q, resíduos versus ajustados, gráficos de localização-escala,
-Breusch--Pagan, Shapiro--Wilk (subconjunto fixo de 5.000 resíduos),
-Jarque--Bera e Durbin--Watson. A máxima verossimilhança de Box--Cox também foi
-calculada \cite{boxcox1964}. A escala logarítmica foi mantida no MVP porque
-reduziu mais a estatística de Breusch--Pagan, melhorou o $R^2$ ajustado e
-permite interpretação multiplicativa, embora nenhuma das escalas candidatas
-tenha satisfeito completamente as pressuposições clássicas.
+As escalas \texttt{cnt}, $\sqrt{cnt}$ e $\log(1+cnt)$ foram comparadas na
+estrutura M1 usando gráficos Q--Q dos resíduos e dois testes formais:
+Shapiro--Wilk para normalidade, em subconjunto fixo de 5.000 resíduos, e
+Breusch--Pagan studentizado (Koenker) para variância constante. Jarque--Bera,
+Levene, Box--Cox e Durbin--Watson não foram mantidos na narrativa principal;
+seus valores permanecem nos diagnósticos gerados. A escala logarítmica foi
+mantida porque reduziu mais o Breusch--Pagan, melhorou o $R^2$ ajustado e permite
+interpretação multiplicativa, embora nenhuma escala tenha satisfeito
+completamente as pressuposições clássicas.
 
 Dois modelos explicativos hierárquicos foram ajustados. M0 contém os efeitos
 principais de hora, tipo de dia, clima, estação, temperatura, umidade,
@@ -215,15 +215,22 @@ rejeitaram igualdade ($p<0{,}001$).
 
 \subsection{Diagnósticos do modelo e ajuste explicativo}
 
-A estimativa de Box--Cox foi $0{,}305$. Em M1, o $R^2$ ajustado passou de
-$0{,}812$ na resposta bruta para $0{,}893$ na escala de raiz quadrada e $0{,}927$
-na escala logarítmica. A estatística de Breusch--Pagan caiu de $4282{,}8$ para
-$2039{,}7$ e $1672{,}5$, respectivamente, mas todos os valores-p correspondentes
-permaneceram abaixo de $0{,}001$. Na escala logarítmica, a estatística de
-Durbin--Watson em M1 foi $0{,}775$. A função de autocorrelação (ACF) residual foi
-$0{,}612$ na defasagem 1, $0{,}243$ na defasagem 24 e $0{,}200$ na defasagem 168.
-Assim, o modelo é informativo, mas sua pressuposição clássica de independência é
-violada.
+A Tabela~\ref{tab:diagnostics} apresenta os dois testes mantidos. Shapiro--Wilk
+favoreceu a escala de raiz quadrada ($W=0{,}984$), enquanto Breusch--Pagan e
+$R^2$ ajustado favoreceram \texttt{log1p(cnt)}. Todos os valores-p ficaram
+abaixo de $0{,}001$: nenhuma escala passou nas verificações formais. A escolha do
+log é, portanto, um compromisso entre variância e ajuste, não uma afirmação de
+normalidade. A função de autocorrelação (ACF) residual foi $0{,}612$ na
+defasagem 1, $0{,}243$ na defasagem 24 e $0{,}200$ na defasagem 168. Assim, a
+pressuposição clássica de independência também é violada e a incerteza HAC é
+necessária.
+
+\begin{table}[ht]
+\centering
+\caption{Diagnósticos mínimos de transformação na estrutura M1.}
+\label{tab:diagnostics}
+\resizebox{\columnwidth}{!}{\input{../outputs/tables/paper_diagnostics.tex}}
+\end{table}
 
 A inclusão de hora por tipo de dia produziu grande melhoria, elevando o $R^2$
 ajustado de $0{,}824$ para $0{,}927$ e reduzindo o BIC de $31587{,}2$ para

@@ -145,18 +145,22 @@ Adding 1 keeps the logarithm defined if a zero count appears in another dataset.
 
 For the M1 structure:
 
-| Response | Adjusted \(R^2\) | Breusch--Pagan | Durbin--Watson |
+| Response | Shapiro--Wilk \(W\) | Breusch--Pagan | Adjusted \(R^2\) |
 |---|---:|---:|---:|
-| `cnt` | 0.812 | 4282.8 | 0.453 |
-| `sqrt(cnt)` | 0.893 | 2039.7 | 0.474 |
-| `log1p(cnt)` | 0.927 | 1672.5 | 0.775 |
+| `cnt` | 0.972 | 4282.8 | 0.812 |
+| `sqrt(cnt)` | 0.984 | 2039.7 | 0.893 |
+| `log1p(cnt)` | 0.949 | 1672.5 | 0.927 |
 
-We selected `log1p(cnt)` because it had the best fit and the least relative
-heteroscedasticity among the simple candidates. It did not solve every problem:
-formal tests still reject normality, homoscedasticity, and independence.
+The \(p\)-values from Shapiro--Wilk and Breusch--Pagan were below 0.001 on all
+three scales. We selected `log1p(cnt)` because it had the best fit and the least
+relative heteroscedasticity. Shapiro--Wilk alone would favour `sqrt(cnt)`, so the
+choice of the log scale is a variance-and-fit compromise, not a normality pass.
 
-With more than 17,000 observations, tests such as Shapiro--Wilk detect even small
-deviations. We therefore consider tests, plots, and deviation magnitude together.
+Jarque--Bera, Levene, Box--Cox, and Durbin--Watson can still be computed from the
+artifacts in `outputs/tables/`, but they are not part of the paper's main
+narrative. With more than 17,000 observations, tests such as Shapiro--Wilk detect
+even small deviations. We therefore consider tests, plots, and deviation
+magnitude together.
 
 ## 6. Main effect and interaction
 
@@ -275,16 +279,18 @@ The Variance Inflation Factor measures how predictor correlation inflates a
 coefficient's variance. Removing `atemp` reduced the selected numerical VIF
 values to approximately 1.1 or less.
 
-### Durbin--Watson and ACF
+### ACF and temporal dependence
 
-A Durbin--Watson value near 2 suggests little first-order autocorrelation. M1's
-value is 0.775, indicating positive autocorrelation. Residual ACF is:
+The residual autocorrelation function (ACF) for M1 is:
 
 - lag 1: 0.612;
 - lag 24: 0.243;
 - lag 168: 0.200.
 
-These are **observed-hour** lags because the calendar contains gaps.
+Durbin--Watson remains available in the generated artifacts; in the main
+narrative the ACF summarizes dependence across several time scales more
+informatively. These are **observed-hour** lags because the calendar contains
+gaps.
 
 ### Why use HAC?
 

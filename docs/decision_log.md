@@ -238,3 +238,26 @@ English abstract is retained in the Portuguese file, followed by the Portuguese
 table, figure, citation, or conclusion changes. This entry refines the earlier
 statement that only the article would remain in English; the English file remains
 canonical for submission, while the Portuguese file is a study and review aid.
+
+## 2026-11-20 — Keep only two formal diagnostic tests in the article
+
+**Question:** Can the diagnostics section be reduced further without weakening
+the analysis?
+
+**Evidence:** Shapiro--Wilk covers residual normality and Breusch--Pagan covers
+constant residual variance. Jarque--Bera is largely redundant with Shapiro--Wilk
+and the reported skewness/kurtosis; Levene is a descriptive group comparison;
+Box--Cox is optional once the scale comparison is reported; Durbin--Watson only
+covers first-order autocorrelation, while the residual ACF shows dependence at
+several lags. With more than 17,000 observations, all formal tests reject small
+deviations, so plots and effect sizes matter more than a long test list.
+
+**Decision:** The article reports only Shapiro--Wilk and the studentized
+Breusch--Pagan test for the scale comparison, plus residual ACF as the basis for
+HAC(168). Jarque--Bera, Levene, Box--Cox, and Durbin--Watson remain in the
+generated outputs and Git history but are removed from the main narrative.
+
+**Consequence:** Both papers now include a compact three-row diagnostics table
+and state explicitly that the log scale is a variance-and-fit compromise, not a
+normality pass. The bilingual tutorials explain the omitted tests as
+supplementary material.
