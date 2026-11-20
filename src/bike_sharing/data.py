@@ -13,7 +13,6 @@ from bike_sharing.config import (
     EXPECTED_COLUMNS,
     HOURLY_DATA,
     SEASON_LABELS,
-    WEATHER_GROUP_LABELS,
     WEATHER_LABELS,
     WEEKDAY_LABELS,
     WORKING_DAY_LABELS,
@@ -47,9 +46,6 @@ def load_hourly_data(path: Path = HOURLY_DATA) -> pd.DataFrame:
     data = pd.read_csv(path)
     data["dteday"] = pd.to_datetime(data["dteday"], format="%Y-%m-%d")
     data["timestamp"] = data["dteday"] + pd.to_timedelta(data["hr"], unit="h")
-    data["time_index_days"] = (
-        data["timestamp"] - data["timestamp"].min()
-    ).dt.total_seconds() / 86_400
 
     data["season_label"] = pd.Categorical(
         data["season"].map(SEASON_LABELS),
@@ -59,12 +55,6 @@ def load_hourly_data(path: Path = HOURLY_DATA) -> pd.DataFrame:
     data["weather_label"] = pd.Categorical(
         data["weathersit"].map(WEATHER_LABELS),
         categories=list(WEATHER_LABELS.values()),
-        ordered=True,
-    )
-    weather_group_code = data["weathersit"].clip(upper=3)
-    data["weather_group"] = pd.Categorical(
-        weather_group_code.map(WEATHER_GROUP_LABELS),
-        categories=list(WEATHER_GROUP_LABELS.values()),
         ordered=True,
     )
     data["workingday_label"] = pd.Categorical(
@@ -77,7 +67,6 @@ def load_hourly_data(path: Path = HOURLY_DATA) -> pd.DataFrame:
     data["weekday_label"] = pd.Categorical(
         data["weekday"].map(WEEKDAY_LABELS), categories=list(WEEKDAY_LABELS.values())
     )
-    data["sqrt_cnt"] = np.sqrt(data["cnt"])
     data["log1p_cnt"] = np.log1p(data["cnt"])
     return data
 

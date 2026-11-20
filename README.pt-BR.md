@@ -3,17 +3,19 @@
 **Português (Brasil)** | [English](README.md)
 
 Análise estatística e predição de demanda com o UCI Bike Sharing Dataset,
-desenvolvida para um trabalho de Planejamento de Experimentos. A narrativa final
-foi deliberadamente concentrada em uma pergunta: como o tipo de dia altera o
-perfil horário da demanda?
+desenvolvida para um trabalho de Planejamento de Experimentos. A análise segue a
+proposta com um único modelo de regressão.
 
 ## Objetivos
 
 1. Caracterizar o desenho observacional, fatorial natural e temporal dos dados.
-2. Descrever os efeitos de hora, dia útil, clima, estação e covariáveis ambientais.
-3. Comparar um modelo aditivo M0 com um modelo M1 contendo `hora × dia útil`.
-4. Verificar pressupostos, incluindo heterocedasticidade e autocorrelação.
-5. Avaliar o preditor correspondente em períodos futuros, sem divisão aleatória.
+2. Descrever `cnt` e os efeitos de `hr`, `workingday`, `weathersit` e `season`.
+3. Apresentar gráficos de efeitos principais e a interação `workingday × hr`.
+4. Comparar `cnt` e `log1p(cnt)` e verificar diagnósticos básicos dos resíduos.
+5. Ajustar um único modelo com `hr × workingday`, `weathersit`, `season`, `temp`,
+   `hum`, `windspeed` e `yr`.
+6. Avaliar o modelo em uma divisão temporal entre treino e teste, com MAE, RMSE e
+   R².
 
 ## Guia para aprender a análise
 
@@ -24,10 +26,10 @@ passo:
 - estudo observacional, DOE fatorial e OFAT;
 - estatística descritiva e transformação logarítmica;
 - efeitos principais e interações;
-- ANOVA, p-valor e eta quadrado parcial;
-- regressões M0 e M1;
-- resíduos, VIF, Durbin--Watson, ACF e HAC;
-- validação temporal, baseline, MAE, RMSE e R²;
+- ANOVA, valor-p e eta quadrado parcial;
+- o modelo de regressão único;
+- diagnósticos básicos dos resíduos e ACF;
+- divisão temporal, MAE, RMSE e R²;
 - relação entre cada conceito e os scripts do projeto.
 
 Também existe uma [versão equivalente em inglês](docs/tutorial-en.md).
@@ -37,7 +39,7 @@ O artigo no formato SBC também é mantido nas duas línguas:
 - [Artigo em inglês](paper/main.tex) — fonte canônica para submissão
 - [Artigo em português brasileiro](paper/main-pt-br.tex) — versão para estudo e revisão
 
-## Dataset
+## Base de dados
 
 A análise utiliza `dataset/hour.csv`, com 17.379 observações horárias do Capital
 Bikeshare entre 2011 e 2012. A resposta `cnt` é o total de aluguéis. As variáveis
@@ -46,15 +48,16 @@ Bikeshare entre 2011 e 2012. A resposta `cnt` é o total de aluguéis. As variá
 Consulte [`dataset/README.md`](dataset/README.md) para origem, licença, citação e
 checksums dos arquivos.
 
-## Modelos centrais
+## Modelo central
 
 ```text
-M0: log1p(cnt) ~ efeitos principais
-M1: log1p(cnt) ~ efeitos principais + hora × dia útil
+log1p(cnt) ~ hr * workingday + weathersit + season + temp + hum + windspeed + yr
 ```
 
-O R² ajustado aumenta de 0,824 em M0 para 0,927 em M1. No holdout do último
-trimestre de 2012, o preditor P1 obteve MAE 51,99, RMSE 83,07 e R² 0,830.
+O modelo possui 58 parâmetros e $R^2$ ajustado 0,927 na amostra completa. No
+conjunto de teste do último trimestre de 2012 (2.168 horas), obteve MAE 45,27,
+RMSE 72,97 e R² 0,869. A interação `hora × tipo de dia` possui eta quadrado
+parcial 0,589.
 
 Esses resultados representam associações e capacidade preditiva; eles não
 demonstram causalidade porque não houve randomização.
@@ -80,7 +83,7 @@ Os scripts numerados ficam em `analysis/`, funções compartilhadas em
 - Decisões metodológicas: `docs/decision_log.md`
 - Guia didático em português: `docs/tutorial-pt-br.md`
 - Guia didático em inglês: `docs/tutorial-en.md`
-- Resumo dos resultados em português: `outputs/resultados_mvp-pt-br.md`
+- Resumo dos resultados em português: `outputs/resumo_resultados.md`
 - Artigo para entrega (inglês): `paper/main.tex`
 - Artigo em português brasileiro: `paper/main-pt-br.tex`
 - Roteiro da apresentação: `presentation/roteiro-pt-br.md`

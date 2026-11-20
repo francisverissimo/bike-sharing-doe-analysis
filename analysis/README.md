@@ -1,10 +1,12 @@
 # Analysis scripts
 
-The active scope is deliberately narrow: compare additive M0 with M1, which adds
-only the prespecified `hour × working day` interaction. The predictive stage
-compares a historical baseline, P0, and P1 using chronological windows.
+The analysis follows the proposal with one regression model. It describes `cnt`,
+plots the main effects of `hr`, `workingday`, `weathersit`, and `season`, plots the
+`workingday × hr` interaction, reports a factorial ANOVA, compares `cnt` with
+`log1p(cnt)`, checks basic residual diagnostics, and evaluates one chronological
+train/test split with MAE, RMSE, and R-squared.
 
-This directory will contain numbered, executable scripts:
+The numbered scripts are:
 
 1. `00_validate_data.py`
 2. `01_descriptive_analysis.py`
@@ -14,7 +16,7 @@ This directory will contain numbered, executable scripts:
 6. `05_temporal_validation.py`
 7. `06_report_assets.py`
 
-Reusable functions belong in `src/bike_sharing/`. Scripts should orchestrate an
+Reusable functions belong in `src/bike_sharing/`. Scripts orchestrate an
 analysis, save deterministic artifacts under `outputs/`, and avoid duplicating
 statistical or plotting logic.
 

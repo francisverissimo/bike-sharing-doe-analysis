@@ -27,134 +27,128 @@ um estudo observacional informado por DOE}
 \maketitle
 
 \begin{abstract}
-This study examines hourly bicycle rental demand using 17,379 observations from
+This study analyses hourly bicycle rental demand using 17,379 observations from
 the Capital Bikeshare system in Washington, D.C., collected in 2011 and 2012.
 The data are observational and have a natural factorial and temporal structure.
-We combine descriptive statistics, factorial analysis of variance, effect and
-interaction plots, residual diagnostics, and two multiple regression models. The
-central factorial result is the interaction between hour and working-day status,
-with partial eta-squared 0.589. The interaction model for $\log(1+cnt)$ obtained
-adjusted $R^2$ 0.927, although residual temporal dependence remained and
-motivated HAC standard errors. A corresponding predictor was assessed with
-expanding-window validation. On the final quarter of 2012, it obtained MAE
-51.99, RMSE 83.07, and out-of-sample $R^2$ 0.830. The
-results demonstrate strong temporal and weather associations, but the lack of
-randomization prevents causal interpretation.
+We describe the response, examine the factors hour, working-day status, weather
+situation and season through main-effect plots and the working-day by hour
+interaction, and report a factorial analysis of variance. The raw count and its
+logarithm are compared, and the logarithmic scale is adopted. A single
+regression model with the working-day by hour interaction, weather situation,
+season, temperature, humidity, wind speed and year is fitted, followed by basic
+residual diagnostics. A strictly chronological split trains through September
+2012 and tests on the last quarter of 2012. On the test set the model attains
+MAE 45.27, RMSE 72.97 and $R^2$ 0.869. The associations are strong, but the
+absence of randomisation prevents causal interpretation.
 \end{abstract}
 
 \begin{resumo}
-Este estudo examina a demanda horária por bicicletas usando 17.379 observações
-do sistema Capital Bikeshare, em Washington, D.C., coletadas em 2011 e 2012.
-Os dados são observacionais e apresentam estrutura fatorial e temporal natural.
-Combinamos estatística descritiva, análise de variância fatorial, gráficos de
-efeitos e interações, diagnóstico de resíduos e dois modelos de regressão
-múltipla. O resultado fatorial central é a interação entre hora e tipo de dia,
-com eta quadrado parcial $0{,}589$. O modelo de interação para $\log(1+cnt)$
-obteve $R^2$ ajustado $0{,}927$, embora a dependência temporal residual tenha
-motivado erros-padrão HAC. O preditor correspondente foi avaliado com janelas
-temporais expansivas. No último trimestre de 2012, obteve MAE $51{,}99$, RMSE
-$83{,}07$ e $R^2$ fora da amostra $0{,}830$. Os resultados indicam fortes
-associações temporais e climáticas, mas a ausência de randomização impede
-interpretação causal.
+Este estudo analisa a demanda horária por bicicletas usando 17.379 observações
+do sistema Capital Bikeshare de Washington, D.C., coletadas em 2011 e 2012. Os
+dados são observacionais e possuem estrutura fatorial e temporal natural.
+Descrevemos a resposta, examinamos os fatores hora, tipo de dia, situação
+climática e estação por meio de gráficos de efeitos principais e da interação
+entre tipo de dia e hora, e apresentamos uma análise de variância fatorial. A
+contagem bruta e seu logaritmo são comparados, adotando-se a escala logarítmica.
+Um único modelo de regressão com a interação tipo de dia por hora, situação
+climática, estação, temperatura, umidade, velocidade do vento e ano é ajustado,
+seguido de diagnósticos básicos dos resíduos. Uma divisão estritamente temporal
+treina até setembro de 2012 e testa no último trimestre de 2012. No conjunto de
+teste, o modelo atinge MAE 45,27, RMSE 72,97 e $R^2$ 0,869. As associações são
+fortes, mas a ausência de randomização impede interpretação causal.
 \end{resumo}
 
 \section{Introdução}
 
 Sistemas de compartilhamento de bicicletas registram demanda com alta resolução
 temporal e oferecem uma visão útil da mobilidade urbana. O número de aluguéis
-depende simultaneamente de condições de calendário, sazonais e
-meteorológicas. Essa estrutura multifatorial torna os dados adequados para uma
-análise informada por Planejamento de Experimentos (DOE), embora os registros não
-tenham sido produzidos por um experimento controlado.
+depende simultaneamente de condições de calendário, sazonais e meteorológicas.
+Essa estrutura multifatorial torna os dados adequados a uma perspectiva de
+Planejamento de Experimentos (DOE), embora os registros não tenham sido
+produzidos por um experimento controlado.
 
-O objetivo deste estudo é identificar e quantificar fatores e interações
-associados à demanda horária por aluguéis e desenvolver um preditor que
-generalize para períodos posteriores. A análise enfatiza a interação entre hora
-e tipo de dia: espera-se que deslocamentos gerem picos matinais e vespertinos em
-dias úteis, enquanto dias não úteis devem apresentar perfil recreativo mais
-suave. Diferenciamos inferência explicativa de validação preditiva e evitamos
-linguagem causal porque nenhum tratamento foi randomizado.
+O objetivo é identificar e quantificar os fatores associados à demanda horária
+por aluguéis e avaliar a predição em um período posterior. Atenção especial é
+dada à interação entre hora e tipo de dia: deslocamentos devem gerar picos
+matinais e vespertinos em dias úteis, enquanto dias não úteis devem apresentar
+perfil recreativo mais suave. Como nenhum tratamento foi randomizado, a análise
+usa linguagem de associação e predição em todo o texto.
 
 \section{Base de dados e desenho do estudo}
 
 A base UCI Bike Sharing Dataset \cite{uci-bike-sharing} contém registros do
-sistema Capital Bikeshare em Washington, D.C. A publicação associada descreve a
-coleta e seu contexto de detecção de eventos \cite{fanaee2013}. Usamos o arquivo
-horário, que cobre de 1 de janeiro de 2011 a 31 de dezembro de 2012.
+sistema Capital Bikeshare em Washington, D.C.; a publicação associada descreve a
+coleta dos dados \cite{fanaee2013}. Usamos o arquivo horário, que cobre de 1 de
+janeiro de 2011 a 31 de dezembro de 2012. Cada linha corresponde a uma hora
+observada.
 
-Cada linha corresponde a uma hora observada. A resposta, \texttt{cnt}, é o total
-de aluguéis e equivale a \texttt{casual + registered}. Esses componentes não são
-usados como preditores porque causariam vazamento direto da resposta. Os fatores
-incluem hora, tipo de dia, categoria climática, estação e ano. Temperatura,
-umidade e velocidade do vento são covariáveis contínuas normalizadas. A
-temperatura aparente (\texttt{atemp}) foi omitida porque sua correlação com
-\texttt{temp} era $0{,}988$ e os fatores de inflação de variância conjuntos
-excediam 43.
+A resposta, \texttt{cnt}, é o total de aluguéis e equivale a
+\texttt{casual + registered}. Ambos os componentes são excluídos como
+preditores porque causariam vazamento da resposta. Os quatro fatores são hora
+(\texttt{hr}), tipo de dia (\texttt{workingday}), situação climática
+(\texttt{weathersit}) e estação (\texttt{season}). Temperatura, umidade e
+velocidade do vento são covariáveis contínuas padronizadas. A temperatura
+aparente não é usada porque sua correlação com a temperatura é $0{,}988$.
 
-O desenho é observacional, não randomizado, sem blocos e naturalmente fatorial.
-Não é um experimento fatorial controlado nem um delineamento OFAT. As observações
-são ordenadas no tempo e, portanto, não podem ser consideradas independentes.
-Há 165 horários ausentes na sequência completa do calendário horário; não foi
-feita imputação porque os modelos usam horas observadas, e não respostas
-defasadas. Apenas três linhas têm nível climático 4; por isso, os níveis 3 e 4
-foram agrupados como ``precipitação/tempo adverso'' para estabilidade
-inferencial, mantendo os dados originais inalterados.
+O desenho é observacional, não randomizado, sem blocos e naturalmente fatorial;
+não é um experimento controlado. As observações são ordenadas no tempo e não
+podem ser consideradas independentes. Há 165 horários ausentes no calendário
+horário, e não foi feita imputação. O nível 4 da situação climática ocorre em
+apenas três horas, de modo que sua estimativa descritiva é necessariamente
+imprecisa.
 
 \section{Métodos}
 
-\subsection{Análise descritiva e informada por DOE}
+\subsection{Análise descritiva e gráficos fatoriais}
 
 Calculamos tamanhos amostrais, médias, medianas, desvios-padrão, quartis,
-histogramas, boxplots, gráficos temporais e correlações de Pearson. Gráficos de
-efeitos principais mostram médias por grupo com intervalos de confiança de
-95\%. O gráfico de interação concentra-se na relação pré-especificada entre hora
-e tipo de dia.
+histogramas, boxplots, uma série temporal diária e correlações de Pearson para
+\texttt{cnt}. Os gráficos de efeitos principais mostram a média de cada nível
+dos quatro fatores com intervalos de confiança de 95\%. Um segundo gráfico mostra
+a demanda média por hora separadamente para dias úteis e não úteis, tornando
+visível a interação entre hora e tipo de dia.
 
-ANOVA de um fator foi calculada nas respostas bruta e log-transformada. Modelos
-fatoriais foram estimados por mínimos quadrados ordinários. Testes F parciais
-aninhados avaliaram a contribuição incremental da interação, e uma tabela de
-ANOVA tipo II reporta eta quadrado parcial. Tukey HSD foi usado apenas para
-contrastes climáticos descritivos. Como o desenho é observacional e
-desbalanceado, as conclusões inferenciais dependem da magnitude dos efeitos e da
-incerteza, não apenas de valores-p \cite{montgomery2017}.
+\subsection{Análise de variância fatorial}
 
-\subsection{Transformações e regressão explicativa}
+Um modelo fatorial foi ajustado por mínimos quadrados ordinários com os quatro
+fatores, as três covariáveis contínuas e o ano como ajustes, além da interação
+entre hora e tipo de dia. Uma análise de variância tipo II reporta o eta
+quadrado parcial de cada termo \cite{montgomery2017}. Como o desenho é
+observacional e desbalanceado, a magnitude dos efeitos e a validação temporal
+são enfatizadas em vez da significância isoladamente.
 
-As escalas \texttt{cnt}, $\sqrt{cnt}$ e $\log(1+cnt)$ foram comparadas na
-estrutura M1 usando gráficos Q--Q dos resíduos e dois testes formais:
-Shapiro--Wilk para normalidade, em subconjunto fixo de 5.000 resíduos, e
-Breusch--Pagan studentizado (Koenker) para variância constante. Jarque--Bera,
-Levene, Box--Cox e Durbin--Watson não foram mantidos na narrativa principal;
-seus valores permanecem nos diagnósticos gerados. A escala logarítmica foi
-mantida porque reduziu mais o Breusch--Pagan, melhorou o $R^2$ ajustado e permite
-interpretação multiplicativa, embora nenhuma escala tenha satisfeito
-completamente as pressuposições clássicas.
+\subsection{Escala da resposta}
 
-Dois modelos explicativos hierárquicos foram ajustados. M0 contém os efeitos
-principais de hora, tipo de dia, clima, estação, temperatura, umidade,
-velocidade do vento e ano. M1 acrescenta apenas a interação pré-especificada
-entre hora e tipo de dia e mantém ambos os efeitos principais componentes. Essa
-comparação testa diretamente se a interação fatorial acrescenta informação além
-de um modelo aditivo. Comparamos $R^2$ ajustado, AIC, BIC e um teste F aninhado.
-Devido à autocorrelação residual, a incerteza dos coeficientes de M1 também foi
-calculada com covariância HAC de Newey--West usando 168 horários observados como
-defasagens \cite{neweywest1987}.
+A resposta bruta \texttt{cnt} e $\log(1+\texttt{cnt})$ foram comparadas na mesma
+estrutura de modelo usando gráficos de resíduos versus ajustados, gráficos
+normais Q--Q, o teste de Shapiro--Wilk em subconjunto fixo de 5.000 resíduos e o
+teste studentizado de Breusch--Pagan para variância constante. A função de
+autocorrelação (ACF) dos resíduos também foi examinada. A escala logarítmica foi
+adotada porque melhorou o ajuste e reduziu a estatística de Breusch--Pagan; isso
+não implica que a pressuposição de normalidade seja satisfeita.
 
-\subsection{Validação preditiva temporal}
+\subsection{Regressão e diagnósticos dos resíduos}
 
-A avaliação preditiva foi separada da inferência com a amostra completa. Os
-modelos foram treinados até março de 2012 e avaliados no Q2; em seguida,
-treinados até junho e avaliados no Q3. A seleção da especificação usou o RMSE
-médio nessas duas janelas de validação expansivas. O Q4 de 2012 permaneceu
-intacto até a seleção e serviu como holdout final. Isso evita o vazamento
-temporal causado por divisão aleatória.
+Um único modelo de regressão foi especificado antes do ajuste:
+\begin{center}
+\texttt{log1p(cnt) $\sim$ C(hr) * C(workingday) + C(weathersit) + C(season)} \\
+\texttt{$\quad$ + temp + hum + windspeed + C(yr).}
+\end{center}
+A interação inclui ambos os efeitos principais componentes. Os diagnósticos
+básicos consistem em gráficos de resíduos versus ajustados, gráficos normais
+Q--Q e da ACF dos resíduos em defasagens de horas observadas. A correção de
+smearing de Duan foi usada para transformar as previsões de volta à escala de
+contagem \cite{duan1983}.
 
-Os modelos preditivos usaram um índice temporal contínuo em vez de um efeito
-categórico de ano. Comparamos um modelo aditivo (P0), o modelo com hora por tipo
-de dia (P1) e uma linha de base pela média histórica em cada combinação de hora
-e tipo de dia. As previsões de contagem obtidas na escala logarítmica usaram a
-correção de smearing de Duan \cite{duan1983}. Reportamos MAE, RMSE, RMSLE e
-$R^2$ fora da amostra.
+\subsection{Divisão temporal entre treino e teste}
+
+O modelo foi treinado em todas as horas até 30 de setembro de 2012 e avaliado nas
+2.168 horas de 1 de outubro a 31 de dezembro de 2012. A divisão é estritamente
+temporal e mantém os dois anos nos dados de treino, de modo que o fator ano é
+estimável. A divisão aleatória foi evitada porque misturaria observações futuras
+e passadas. O desempenho no teste é reportado com erro absoluto médio (MAE),
+raiz do erro quadrático médio (RMSE) e $R^2$ fora da amostra na escala de
+contagem.
 
 \section{Resultados}
 
@@ -170,12 +164,12 @@ distribuição bruta é assimétrica à direita (assimetria $1{,}277$).
 \resizebox{\columnwidth}{!}{\input{../outputs/tables/paper_descriptive.tex}}
 \end{table}
 
-A demanda horária média foi $204{,}87$ com tempo claro/parcialmente nublado,
-$175{,}17$ com névoa/nublado e $111{,}50$ com precipitação/tempo adverso. As
-médias sazonais foram $111{,}11$ na primavera (mar--mai), $208{,}34$ no verão
-(jun--ago), $236{,}02$ no outono (set--nov) e $198{,}87$ no inverno (dez--fev).
-Essas são associações não ajustadas e refletem desequilíbrios entre outras
-condições.
+A demanda horária média foi $204{,}87$ com tempo claro ou parcialmente nublado,
+$175{,}17$ com névoa ou nublado, $111{,}58$ com precipitação leve e $74{,}33$ com
+tempo severo, este último com apenas três horas. As médias sazonais foram
+$111{,}11$ na primavera, $208{,}34$ no verão, $236{,}02$ no outono e $198{,}87$
+no inverno. Essas associações não ajustadas refletem desequilíbrios entre as
+demais condições.
 
 \begin{figure}[ht]
 \centering
@@ -184,122 +178,113 @@ condições.
 \label{fig:distribution}
 \end{figure}
 
-\subsection{Efeitos principais e interações}
+\subsection{Efeitos principais e interação}
 
-A Figura~\ref{fig:interactions} mostra o resultado central. Em dias úteis, a
-demanda atinge pico por volta das 08:00 e entre 17:00--18:00. Em dias não úteis,
-observa-se pico mais amplo ao meio do dia. Consequentemente, o pequeno efeito
-principal ajustado do tipo de dia não deve ser interpretado sem considerar a
-hora.
+A Figura~\ref{fig:main-effects} mostra os quatro efeitos principais. Hora e
+estação são as margens mais visíveis; o tipo de dia apresenta pequena diferença
+média incondicional. A Figura~\ref{fig:workingday-hour} mostra por que essa
+diferença não deve ser lida isoladamente: em dias úteis a demanda atinge pico
+por volta das 08:00 e entre 17:00--18:00, enquanto dias não úteis apresentam pico
+mais amplo ao meio do dia.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\columnwidth]{../outputs/figures/primary_interaction.png}
-\caption{Interação observada principal entre hora e tipo de dia (útil ou não útil).}
-\label{fig:interactions}
+\includegraphics[width=\columnwidth]{../outputs/figures/main_effects.png}
+\caption{Gráficos de efeitos principais para hora, tipo de dia, situação climática e estação.}
+\label{fig:main-effects}
 \end{figure}
 
-O eta quadrado parcial de M1 foi $0{,}878$ para hora e $0{,}589$ para hora por
-tipo de dia (Tabela~\ref{tab:anova}). O ano teve eta quadrado parcial $0{,}264$,
-refletindo maior adoção em 2012. Clima e estação também apresentaram associações
-ajustadas relevantes, com eta quadrado parcial $0{,}120$ e $0{,}168$. Todos os
-três contrastes descritivos de Tukey para clima na escala $\log(1+cnt)$
-rejeitaram igualdade ($p<0{,}001$).
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{../outputs/figures/workingday_hr_interaction.png}
+\caption{Interação entre tipo de dia e hora.}
+\label{fig:workingday-hour}
+\end{figure}
+
+\subsection{ANOVA fatorial}
+
+A Tabela~\ref{tab:anova} apresenta a ANOVA fatorial tipo II. A hora possui eta
+quadrado parcial $0{,}878$ e a interação hora por tipo de dia, $0{,}589$. A
+situação climática e a estação contribuem com $0{,}120$ e $0{,}168$,
+respectivamente, e o ano com $0{,}264$. O efeito principal de tipo de dia é
+pequeno ($0{,}001$), coerente com o gráfico de interação.
 
 \begin{table}[ht]
 \centering
-\caption{ANOVA tipo II para o modelo de interação M1.}
+\caption{ANOVA fatorial tipo II para o modelo na escala logarítmica.}
 \label{tab:anova}
 \resizebox{\columnwidth}{!}{\input{../outputs/tables/paper_anova.tex}}
 \end{table}
 
-\subsection{Diagnósticos do modelo e ajuste explicativo}
+\subsection{Escala da resposta e diagnósticos dos resíduos}
 
-A Tabela~\ref{tab:diagnostics} apresenta os dois testes mantidos. Shapiro--Wilk
-favoreceu a escala de raiz quadrada ($W=0{,}984$), enquanto Breusch--Pagan e
-$R^2$ ajustado favoreceram \texttt{log1p(cnt)}. Todos os valores-p ficaram
-abaixo de $0{,}001$: nenhuma escala passou nas verificações formais. A escolha do
-log é, portanto, um compromisso entre variância e ajuste, não uma afirmação de
-normalidade. A função de autocorrelação (ACF) residual foi $0{,}612$ na
-defasagem 1, $0{,}243$ na defasagem 24 e $0{,}200$ na defasagem 168. Assim, a
-pressuposição clássica de independência também é violada e a incerteza HAC é
-necessária.
+A Tabela~\ref{tab:scales} compara as duas escalas. O $R^2$ ajustado sobe de
+$0{,}812$ em \texttt{cnt} para $0{,}927$ em $\log(1+\texttt{cnt})$, enquanto a
+estatística de Breusch--Pagan cai de $4281{,}6$ para $1676{,}6$. Shapiro--Wilk
+rejeita normalidade nas duas escalas, de modo que a escolha do log se baseia em
+variância e ajuste, não em uma afirmação de resíduos normais. O modelo ajustado
+usa 58 parâmetros, com AIC $15916{,}2$ e BIC $16366{,}4$.
 
 \begin{table}[ht]
 \centering
-\caption{Diagnósticos mínimos de transformação na estrutura M1.}
-\label{tab:diagnostics}
-\resizebox{\columnwidth}{!}{\input{../outputs/tables/paper_diagnostics.tex}}
+\caption{Comparação entre as escalas bruta e logarítmica da resposta.}
+\label{tab:scales}
+\resizebox{\columnwidth}{!}{\input{../outputs/tables/paper_scale_comparison.tex}}
 \end{table}
 
-A inclusão de hora por tipo de dia produziu grande melhoria, elevando o $R^2$
-ajustado de $0{,}824$ para $0{,}927$ e reduzindo o BIC de $31587{,}2$ para
-$16356{,}7$ (Tabela~\ref{tab:models}). O teste aninhado também apoiou a interação
-($F=1079{,}55$, $p<0{,}001$). M1 usa 57 parâmetros porque um fator hora com 24
-níveis interage com um fator binário; interpretamos a curva de interação em vez
-de listar todos os coeficientes indicadores.
+A ACF dos resíduos é $0{,}612$ na defasagem 1, $0{,}243$ na defasagem 24 e
+$0{,}200$ na defasagem 168 (Figura~\ref{fig:acf}), mostrando dependência temporal
+não explicada pelos fatores incluídos. Consequentemente, a significância
+reportada é descritiva e o conjunto de teste temporal é a principal evidência
+de desempenho preditivo.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{../outputs/diagnostics/residual_acf.png}
+\caption{Função de autocorrelação dos resíduos do modelo na escala logarítmica.}
+\label{fig:acf}
+\end{figure}
+
+\subsection{Desempenho no conjunto de teste}
+
+Nas 2.168 horas de teste, o modelo obteve MAE $45{,}27$, RMSE $72{,}97$ e
+$R^2=0{,}869$ (Tabela~\ref{tab:test} e Figura~\ref{fig:predictions}). O período
+de teste é um trimestre de outono, de modo que o resultado descreve uma
+extrapolação de curto prazo dentro do sistema observado em dois anos.
 
 \begin{table}[ht]
 \centering
-\caption{Comparação explicativa simples na escala $\log(1+cnt)$.}
-\label{tab:models}
-\resizebox{\columnwidth}{!}{\input{../outputs/tables/paper_models.tex}}
-\end{table}
-
-\subsection{Desempenho preditivo}
-
-P1, que inclui hora por tipo de dia, teve o menor RMSE médio de validação
-($135{,}77$) nos trimestres Q2 e Q3 de 2012. O modelo aditivo P0 obteve
-$171{,}30$ e a linha de base, $167{,}14$. A comparação mostra que a mesma
-interação enfatizada pela análise DOE também melhora a predição.
-
-No holdout do Q4, P1 obteve MAE $51{,}99$, RMSE $83{,}07$, $R^2=0{,}830$ e
-RMSLE $0{,}524$ (Tabela~\ref{tab:holdout}). A linha de base por hora e tipo de
-dia obteve RMSE $119{,}59$ e $R^2=0{,}648$. Os maiores erros de P1 ocorreram por
-volta das 17:00--18:00, quando a demanda também era mais alta.
-
-\begin{table}[ht]
-\centering
-\caption{Desempenho no conjunto de teste reservado do Q4/2012.}
-\label{tab:holdout}
-\resizebox{\columnwidth}{!}{\input{../outputs/tables/paper_holdout.tex}}
+\caption{MAE, RMSE e $R^2$ no conjunto de teste do Q4/2012.}
+\label{tab:test}
+\resizebox{\columnwidth}{!}{\input{../outputs/tables/paper_test_metrics.tex}}
 \end{table}
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\columnwidth]{../outputs/figures/holdout_predictions.png}
-\caption{Previsões do holdout final pelo modelo P1 selecionado.}
+\includegraphics[width=\columnwidth]{../outputs/figures/test_predictions.png}
+\caption{Demanda observada e prevista no conjunto de teste.}
 \label{fig:predictions}
 \end{figure}
 
 \section{Discussão e limitações}
 
-A hora é o fator observado dominante, mas seu significado depende fortemente do
-tipo de dia. Isso reforça a abordagem fatorial: uma análise OFAT do tipo de dia
-obscureceria o perfil de deslocamento. Clima, estação, temperatura, umidade,
-vento e ano fornecem ajuste, enquanto uma única interação permanece como foco
-claro da narrativa.
-
-A análise tem limitações importantes. Os tratamentos não foram randomizados, de
-modo que eventos não medidos, expansão do sistema e tendências temporais podem
-confundir as estimativas. A autocorrelação residual permanece após os fatores
-incluídos, e a correção HAC altera a incerteza, não a média ajustada. O holdout
-do Q4 mede uma estação futura, e não todas as condições possíveis de operação.
-Os três registros com tempo severo não permitem uma estimativa separada estável.
-Por fim, esta análise simplificada não compara modelos de efeitos mistos,
-autoregressivos, não lineares ou binomial-negativos.
+A hora é o fator dominante, mas sua forma depende fortemente do tipo de dia, que
+é exatamente o que a análise fatorial permite revelar. Situação climática,
+estação, temperatura e ano fornecem ajuste relevante. A análise é limitada pela
+ausência de randomização: eventos não medidos, expansão do sistema e tendências
+temporais podem confundir as estimativas. A autocorrelação residual permanece
+após os fatores incluídos, e três horas com tempo severo não permitem uma
+estimativa separada precisa. Modelos de efeitos mistos, autoregressivos e de
+distribuição de contagem não foram investigados.
 
 \section{Conclusão}
 
-A análise informada por DOE identificou a interação entre hora e tipo de dia como
-a principal característica estrutural da demanda horária por bicicletas. A
-inclusão dessa única interação elevou o $R^2$ ajustado de $0{,}824$ para
-$0{,}927$. O preditor correspondente explicou $83{,}0\%$ da variação de contagens
-no holdout temporal final. A comparação deliberadamente estreita entre M0 e M1
-demonstra o valor do raciocínio fatorial sem depender de uma grande coleção de
-modelos exploratórios. Antes da submissão, compilaremos e revisaremos
-visualmente o artigo no ambiente SBC e substituiremos os espaços reservados para
-autores.
+A análise identifica a interação entre tipo de dia e hora como a principal
+característica estrutural da demanda horária por bicicletas, com eta quadrado
+parcial $0{,}589$. O único modelo de regressão em $\log(1+\texttt{cnt})$ atinge
+$R^2$ ajustado $0{,}927$ e prevê um trimestre não visto com $R^2=0{,}869$,
+MAE $45{,}27$ e RMSE $72{,}97$. Os resultados sustentam uso descritivo e
+preditivo, não inferência causal.
 
 \bibliographystyle{sbc}
 \bibliography{references}

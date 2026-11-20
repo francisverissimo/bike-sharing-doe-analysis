@@ -1,2 +1,0 @@
-split,model,training_n,evaluation_n,mae,rmse,r2,rmsle
-holdout_q4_2012,P1_workingday_hour,15211,2168,51.9883721790271,83.07206614458012,0.8301797644203758,0.52393358974106

@@ -2,9 +2,12 @@
 
 Reproducible analysis artifacts are organized as follows:
 
-- `figures/`: descriptive, main-effect, and interaction plots;
-- `tables/`: machine-readable statistical summaries and model comparisons;
-- `diagnostics/`: residual and temporal diagnostic plots.
+- `figures/`: response distributions, factor boxplots, daily time series,
+  correlations, main effects, the `workingday × hr` interaction, and test
+  predictions;
+- `tables/`: machine-readable summaries, ANOVA, response-scale comparison, test
+  metrics, and LaTeX tables used by the papers;
+- `diagnostics/`: residual plots and the residual autocorrelation function.
 
-Figures and tables used in the paper are versioned with the script that produced
+Figures and tables used in the papers are versioned with the script that produced
 them. Temporary artifacts belong in `outputs/tmp/` and are ignored by Git.

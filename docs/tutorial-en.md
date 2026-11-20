@@ -1,4 +1,4 @@
-# Didactic guide to the simplified analysis
+# Didactic guide to the analysis
 
 This document explains the work step by step. Its purpose is not only to present
 results, but also to review the statistical concepts and connect each concept to
@@ -14,7 +14,7 @@ We answer two related but distinct questions:
 1. **Explanation:** which factors are associated with hourly bicycle demand and,
    in particular, does the effect of hour differ between working and non-working
    days?
-2. **Prediction:** can these factors predict demand in future periods?
+2. **Prediction:** can these factors predict demand in a later period?
 
 The response is `cnt`, the total number of bicycles rented during an hour.
 
@@ -38,8 +38,8 @@ another.
 |---|---|
 | Observational unit | One recorded hour on a given date |
 | Response | `cnt`, total rentals in that hour |
-| Factors | Hour, working day, weather, season, and year |
-| Covariates | Temperature, humidity, and wind speed |
+| Factors | Hour, working-day status, weather situation, season |
+| Covariates | Temperature, humidity, wind speed |
 | Levels | For example, `workingday` has levels 0 and 1 |
 | Randomization | None |
 | Planned blocks | None |
@@ -71,23 +71,13 @@ so assigning zero would introduce an unsupported assumption.
 
 - `casual` and `registered`: they compose `cnt`. Using them to predict `cnt`
   would be **target leakage**.
-- `atemp`: it correlates 0.988 with `temp`; using both produces VIF values above
-  43. We retained only `temp` to avoid multicollinearity.
+- `atemp`: it correlates 0.988 with `temp`. We use only `temp` to avoid
+  redundant predictors.
 - `instant`: it is only a sequential row identifier.
 
-### Weather grouping
-
-The original `weathersit` factor has four levels, but level 4 appears only three
-times. There is not enough information for a stable separate estimate.
-
-For inference, we use:
-
-1. clear or partly cloudy;
-2. mist or cloudy;
-3. precipitation or adverse, combining original levels 3 and 4.
-
-The raw file remains unchanged. `src/bike_sharing/data.py` creates the grouped
-variable in memory.
+The four factors enter the analysis exactly as recorded: `hr`, `workingday`,
+`weathersit`, and `season`. Weather situation has four levels; level 4 occurs in
+only three hours, so its descriptive mean is imprecise.
 
 ## 4. Descriptive analysis
 
@@ -117,11 +107,12 @@ have low or moderate demand, while some have very high demand.
 
 Observed weather means are:
 
-| Weather | Mean rentals/hour |
+| Weather situation | Mean rentals/hour |
 |---|---:|
 | Clear/partly cloudy | 204.87 |
 | Mist/cloudy | 175.17 |
-| Precipitation/adverse | 111.50 |
+| Light precipitation | 111.58 |
+| Severe weather (3 hours) | 74.33 |
 
 These are **unadjusted** means. Part of each difference may be related to hour,
 season, temperature, or other variables.
@@ -135,32 +126,25 @@ distribution and approximately constant variance.
 Counts are often skewed and have variance that grows with the mean. We compared:
 
 \[
-Y_1 = cnt, \qquad Y_2 = \sqrt{cnt}, \qquad
-Y_3 = \log(1+cnt).
+Y_1 = cnt, \qquad Y_2 = \log(1+cnt).
 \]
 
 Adding 1 keeps the logarithm defined if a zero count appears in another dataset.
 
 ### Evidence for the choice
 
-For the M1 structure:
-
 | Response | Shapiro--Wilk \(W\) | Breusch--Pagan | Adjusted \(R^2\) |
 |---|---:|---:|---:|
-| `cnt` | 0.972 | 4282.8 | 0.812 |
-| `sqrt(cnt)` | 0.984 | 2039.7 | 0.893 |
-| `log1p(cnt)` | 0.949 | 1672.5 | 0.927 |
+| `cnt` | 0.972 | 4281.6 | 0.812 |
+| `log1p(cnt)` | 0.949 | 1676.6 | 0.927 |
 
-The \(p\)-values from Shapiro--Wilk and Breusch--Pagan were below 0.001 on all
-three scales. We selected `log1p(cnt)` because it had the best fit and the least
-relative heteroscedasticity. Shapiro--Wilk alone would favour `sqrt(cnt)`, so the
-choice of the log scale is a variance-and-fit compromise, not a normality pass.
+The \(p\)-values of both tests were below 0.001 on both scales. We use
+`log1p(cnt)` because it fits better and reduces the Breusch--Pagan statistic.
+Shapiro--Wilk alone does not favour this scale, so the decision is a
+variance-and-fit compromise, not a claim of normal residuals.
 
-Jarque--Bera, Levene, Box--Cox, and Durbin--Watson can still be computed from the
-artifacts in `outputs/tables/`, but they are not part of the paper's main
-narrative. With more than 17,000 observations, tests such as Shapiro--Wilk detect
-even small deviations. We therefore consider tests, plots, and deviation
-magnitude together.
+With more than 17,000 observations, formal tests detect even small deviations.
+Tests, plots, and deviation magnitude are therefore read together.
 
 ## 6. Main effect and interaction
 
@@ -168,13 +152,13 @@ A **main effect** describes how the mean changes across a factor's levels. In
 this observational study, we use association language.
 
 An **interaction** occurs when one factor's behavior depends on another factor's
-level. Our central case is:
+level. Our prespecified case is:
 
 \[
 \text{hour} \times \text{working day}.
 \]
 
-In `outputs/figures/primary_interaction.png`:
+In `outputs/figures/workingday_hr_interaction.png`:
 
 - working days peak near 08:00 and 17:00--18:00;
 - non-working days have a broader midday profile;
@@ -183,29 +167,22 @@ In `outputs/figures/primary_interaction.png`:
 The overall working-day mean is therefore not enough. Working-day status must be
 interpreted jointly with hour.
 
-## 7. The two explanatory models
+## 7. One regression model
 
-### M0: additive model
+The model was specified once:
 
 ```text
-log1p(cnt) ~ hour + workingday + weather + season
-           + temp + humidity + windspeed + year
+log1p(cnt) ~ hr * workingday + weathersit + season
+            + temp + hum + windspeed + yr
 ```
 
-M0 assumes that the hourly shape is the same for working and non-working days.
-Working-day status could only shift the whole curve up or down.
+In the `statsmodels` formula used in the code, the categorical terms are written
+`C(hr)`, `C(workingday)`, `C(weathersit)`, `C(season)`, and `C(yr)`.
 
-### M1: primary interaction model
-
-```text
-log1p(cnt) ~ hour * workingday + weather + season
-           + temp + humidity + windspeed + year
-```
-
-In a model formula, `hour * workingday` expands to:
+In a model formula, `hr * workingday` expands to:
 
 ```text
-hour + workingday + hour:workingday
+hr + workingday + hr:workingday
 ```
 
 This follows the **hierarchy principle**: when an interaction is present, its
@@ -217,8 +194,9 @@ Treating hour as one linear number would force a straight-line change from 00:00
 to 23:00. The actual pattern contains an overnight trough, two working-day peaks,
 and subsequent declines. We therefore use 24 categorical levels.
 
-This creates more coefficients. M1 has 57 parameters, but the interaction curve
-is more useful than listing every indicator coefficient.
+The model has 58 parameters because a 24-level hour factor interacts with a
+binary factor. The interaction curve is more useful than listing every indicator
+coefficient.
 
 ## 8. ANOVA and effect size
 
@@ -230,38 +208,23 @@ ANOVA partitions response variation among model terms and residual error.
 - **Partial eta-squared:** describes the relative variation attributed to a term
   after accounting for model error.
 
-Central M1 results:
+Central results:
 
 | Term | F | p-value | Partial eta-squared |
 |---|---:|---:|---:|
-| Hour | 5416.44 | < 0.001 | 0.878 |
-| Working day | 12.27 | < 0.001 | 0.001 |
-| Hour × working day | 1079.55 | < 0.001 | 0.589 |
-| Weather | 1180.12 | < 0.001 | 0.120 |
-| Season | 1163.90 | < 0.001 | 0.168 |
+| Hour | 5415.36 | < 0.001 | 0.878 |
+| Working day | 12.26 | < 0.001 | 0.001 |
+| Weather situation | 786.71 | < 0.001 | 0.120 |
+| Season | 1163.59 | < 0.001 | 0.168 |
+| Year | 6203.57 | < 0.001 | 0.264 |
+| Hour × working day | 1079.34 | < 0.001 | 0.589 |
 
 Working day's p-value is small, but its main-effect size is much smaller than the
 interaction. This illustrates why “significant” versus “not significant” is not
-enough for interpretation.
+enough for interpretation. The model has adjusted \(R^2 = 0.927\),
+AIC 15916.2, and BIC 16366.4 on `log1p(cnt)`.
 
-## 9. Comparing M0 and M1
-
-| Model | Parameters | Adjusted \(R^2\) | AIC | BIC |
-|---|---:|---:|---:|---:|
-| M0 | 34 | 0.824 | 31323.3 | 31587.2 |
-| M1 | 57 | 0.927 | 15914.2 | 16356.7 |
-
-- **Adjusted \(R^2\)** rewards explained variation while partly penalizing added
-  parameters.
-- **AIC** and **BIC** balance fit and complexity; lower values are preferred when
-  models use the same response and observations.
-- The nested F test for adding the interaction produced \(F=1079.55\) and
-  \(p<0.001\).
-
-All three criteria favor M1. More importantly, the improvement has a clear
-behavioral explanation: commuting produces a distinct hourly profile.
-
-## 10. Model diagnostics
+## 9. Basic residual diagnostics
 
 ### Residuals versus fitted
 
@@ -273,55 +236,28 @@ heteroscedasticity.
 This plot compares residual quantiles with normal quantiles. Tail deviations
 indicate non-normal residual tails.
 
-### VIF
-
-The Variance Inflation Factor measures how predictor correlation inflates a
-coefficient's variance. Removing `atemp` reduced the selected numerical VIF
-values to approximately 1.1 or less.
-
 ### ACF and temporal dependence
 
-The residual autocorrelation function (ACF) for M1 is:
+The residual autocorrelation function (ACF) is:
 
 - lag 1: 0.612;
 - lag 24: 0.243;
 - lag 168: 0.200.
 
-Durbin--Watson remains available in the generated artifacts; in the main
-narrative the ACF summarizes dependence across several time scales more
-informatively. These are **observed-hour** lags because the calendar contains
-gaps.
+These are **observed-hour** lags because the calendar contains gaps. The ACF
+shows that temporal dependence remains after the included factors. The ANOVA
+p-values are therefore read descriptively, and the chronological test set is the
+main evidence of predictive performance.
 
-### Why use HAC?
+## 10. Temporal train/test split
 
-HAC means *heteroskedasticity and autocorrelation consistent*. Newey--West
-recalculates standard errors and confidence intervals while allowing
-heteroscedasticity and temporal dependence up to a specified lag.
+A random split would allow future observations to help predict the past. We use
+one strictly chronological division:
 
-We use 168 observed-hour lags, approximately one week. HAC does not change model
-coefficients or predictions; it changes uncertainty estimates. It also does not
-eliminate every temporal limitation.
+- **training:** all hours through 30 September 2012 (15,211 hours);
+- **testing:** 1 October through 31 December 2012 (2,168 hours).
 
-## 11. Predictive validation
-
-A random split would allow future observations to help predict the past. We
-instead use expanding temporal windows:
-
-1. train through March 2012, validate on Q2 2012;
-2. train through June 2012, validate on Q3 2012;
-3. train through September 2012, test once on Q4 2012.
-
-The final period was not used for model choice.
-
-We compare:
-
-- **Baseline:** historical mean for each hour and day type;
-- **P0:** predictive additive counterpart of M0;
-- **P1:** predictive model containing `hour × workingday`.
-
-Predictive models replace categorical year with a continuous time index. A
-“2012” category cannot represent an unseen future year, while a time index can
-represent trend.
+Both years appear in the training data, so the year factor is estimable.
 
 Predictions fitted on `log1p(cnt)` return to the count scale with Duan's smearing
 correction. Simply calculating `exp(prediction) - 1` would be biased because the
@@ -332,40 +268,33 @@ exponential of a mean is not the mean of the exponential.
 - **MAE:** average absolute error in rentals.
 - **RMSE:** gives more weight to large errors.
 - **Out-of-sample \(R^2\):** compares the model with the test-period mean.
-- **RMSLE:** measures error on the logarithmic scale and reduces the dominance of
-  the largest counts.
 
-### Final Q4 2012 holdout
+### Test results
 
-| Model | MAE | RMSE | \(R^2\) | RMSLE |
-|---|---:|---:|---:|---:|
-| Baseline | 79.95 | 119.59 | 0.648 | 0.604 |
-| P0 | 85.65 | 121.25 | 0.638 | 0.725 |
-| P1 | 51.99 | 83.07 | 0.830 | 0.524 |
+| MAE | RMSE | \(R^2\) |
+|---:|---:|---:|
+| 45.27 | 72.97 | 0.869 |
 
-P1 outperforms both the additive model and the baseline. The interaction is not
-only statistically detectable; it also improves future prediction.
-
-## 12. What can we conclude?
+## 11. What can we conclude?
 
 1. Hour is the main observed demand factor.
 2. Its behavior strongly depends on working-day status.
 3. Weather and season show important demand associations.
-4. M1 represents the data better than M0.
-5. The same interaction improves temporal prediction.
+4. The logarithmic scale gives the better fit and variance behaviour.
+5. The model predicts an unseen quarter with \(R^2 = 0.869\).
 6. Associations do not establish causality.
 7. Residual dependence remains after adjustment.
 
-## 13. How is the code organized?
+## 12. How is the code organized?
 
 | File | Purpose |
 |---|---|
 | `analysis/00_validate_data.py` | Checks integrity, types, ranges, and gaps |
 | `analysis/01_descriptive_analysis.py` | Creates summaries, histograms, boxplots, and correlations |
-| `analysis/02_doe_analysis.py` | Creates effects, primary interaction, ANOVA, and Tukey |
-| `analysis/03_assumptions_transformations.py` | Compares scales and diagnoses assumptions |
-| `analysis/04_regression_models.py` | Compares M0/M1 and creates HAC/diagnostics |
-| `analysis/05_temporal_validation.py` | Evaluates baseline, P0, and P1 over time |
+| `analysis/02_doe_analysis.py` | Creates main effects, interaction plot, and factorial ANOVA |
+| `analysis/03_assumptions_transformations.py` | Compares response scales and basic residual diagnostics |
+| `analysis/04_regression_models.py` | Fits the single regression model |
+| `analysis/05_temporal_validation.py` | Evaluates the model on the chronological test set |
 | `analysis/06_report_assets.py` | Creates paper tables and bilingual summaries |
 | `src/bike_sharing/` | Shared functions called by the scripts |
 
@@ -383,15 +312,15 @@ make lint
 make test
 ```
 
-## 14. Review questions before the presentation
+## 13. Review questions before the presentation
 
 1. Why can this study not support causal conclusions?
 2. What is the difference among a factor, level, covariate, and response?
 3. Why should `workingday` not be interpreted without `hr`?
-4. What does the interaction add to M0?
+4. How does the interaction appear in the model formula?
 5. Why is normality evaluated on residuals rather than the raw response?
-6. Why did we remove `atemp`?
-7. What does HAC correct, and what does it not correct?
+6. Why do we use `temp` and not `atemp`?
+7. What does the residual ACF tell us?
 8. Why is temporal splitting preferable to random splitting here?
 9. How do explanatory and predictive objectives differ?
 10. Why does a small p-value not guarantee practical importance?

@@ -1,4 +1,4 @@
-"""Generate descriptive statistics and publication-ready exploratory figures."""
+"""Generate descriptive statistics and plots for the hourly rental count."""
 
 from __future__ import annotations
 
@@ -10,6 +10,13 @@ from bike_sharing.config import FIGURES_DIR, TABLES_DIR, ensure_output_directori
 from bike_sharing.data import load_hourly_data
 from bike_sharing.plotting import configure_style, save_figure
 from bike_sharing.statistics import grouped_summary
+
+FACTORS = {
+    "hr": "hr",
+    "workingday": "workingday_label",
+    "weathersit": "weather_label",
+    "season": "season_label",
+}
 
 
 def save_tables(data: pd.DataFrame) -> None:
@@ -44,21 +51,14 @@ def save_tables(data: pd.DataFrame) -> None:
     )
     summary.to_csv(TABLES_DIR / "response_summary.csv", index=False)
 
-    groups = {
-        "hour": "hr",
-        "workingday": "workingday_label",
-        "weather": "weather_group",
-        "season": "season_label",
-        "weekday": "weekday_label",
-        "year": "year_label",
-    }
-    for filename, group in groups.items():
+    for filename, group in FACTORS.items():
         grouped_summary(data, group).to_csv(
             TABLES_DIR / f"summary_by_{filename}.csv", index=False
         )
 
-    correlations = data[["cnt", "temp", "atemp", "hum", "windspeed"]].corr()
-    correlations.to_csv(TABLES_DIR / "numeric_correlations.csv")
+    data[["cnt", "temp", "atemp", "hum", "windspeed"]].corr().to_csv(
+        TABLES_DIR / "numeric_correlations.csv"
+    )
 
 
 def plot_response_distribution(data: pd.DataFrame) -> None:
@@ -73,15 +73,17 @@ def plot_response_distribution(data: pd.DataFrame) -> None:
 
 def plot_factor_boxplots(data: pd.DataFrame) -> None:
     figure, axes = plt.subplots(2, 2, figsize=(11, 7.5))
-    sns.boxplot(data=data, x="workingday_label", y="cnt", ax=axes[0, 0], color="#93c5fd")
-    axes[0, 0].set(xlabel="", ylabel="Hourly rentals", title="Working-day status")
-    sns.boxplot(data=data, x="weather_group", y="cnt", ax=axes[0, 1], color="#a7f3d0")
-    axes[0, 1].tick_params(axis="x", rotation=15)
-    axes[0, 1].set(xlabel="", ylabel="Hourly rentals", title="Weather")
-    sns.boxplot(data=data, x="season_label", y="cnt", ax=axes[1, 0], color="#fde68a")
-    axes[1, 0].set(xlabel="", ylabel="Hourly rentals", title="Season")
-    sns.boxplot(data=data, x="hr", y="cnt", ax=axes[1, 1], color="#c4b5fd", fliersize=1)
-    axes[1, 1].set(xlabel="Hour", ylabel="Hourly rentals", title="Hour of day")
+    specifications = [
+        ("hr", "Hour of day", "#c4b5fd"),
+        ("workingday_label", "Working-day status", "#93c5fd"),
+        ("weather_label", "Weather situation", "#a7f3d0"),
+        ("season_label", "Season", "#fde68a"),
+    ]
+    for axis, (column, title, color) in zip(axes.flat, specifications):
+        sns.boxplot(data=data, x=column, y="cnt", ax=axis, color=color, fliersize=1)
+        axis.set(xlabel="", ylabel="Hourly rentals", title=title)
+        if column != "hr":
+            axis.tick_params(axis="x", rotation=15)
     figure.tight_layout()
     save_figure(figure, FIGURES_DIR / "factor_boxplots.png")
 
@@ -131,7 +133,7 @@ def main() -> None:
     plot_factor_boxplots(data)
     plot_time_series(data)
     plot_correlations(data)
-    print(f"Descriptive outputs written to {FIGURES_DIR.relative_to(FIGURES_DIR.parents[1])}/")
+    print("Descriptive outputs written to outputs/figures and outputs/tables.")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-# MVP presentation outline
+# Presentation outline
 
 ## 1. Research problem
 
@@ -7,7 +7,7 @@
 
 ## 2. Dataset
 
-- Capital Bikeshare, Washington, D.C., 2011–2012.
+- Capital Bikeshare, Washington, D.C., 2011--2012.
 - 17,379 observed hours and 731 calendar days.
 - Response: total hourly rentals (`cnt`).
 
@@ -19,43 +19,42 @@
 
 ## 4. Factors and hypotheses
 
-- Hour, working-day status, weather, season, temperature, humidity, wind.
-- Primary hypothesis: `hour × working day`.
+- `hr`, `workingday`, `weathersit`, `season`, plus `temp`, `hum`, `windspeed`, `yr`.
+- Primary hypothesis: `workingday × hr`.
 - Explain why OFAT would miss the commuting pattern.
 
 ## 5. Descriptive results
 
-- Show `response_distributions.png`.
-- Report mean 189.46, median 142, range 1–977.
+- Mean 189.46, median 142, range 1--977, skewness 1.277.
 - Show weather and seasonal means.
 
-## 6. Main effects and interactions
+## 6. Main effects and interaction
 
-- Show `interaction_plots.png`.
+- Show `main_effects.png` and `workingday_hr_interaction.png`.
 - Interpret morning/evening working-day peaks and the non-working-day midday peak.
-- Report partial eta-squared 0.615 for the primary interaction.
+- Report partial eta-squared 0.589 for the interaction.
 
-## 7. Assumptions and model construction
+## 7. Response scale and factorial ANOVA
 
-- Compare raw, square-root, and log-one-plus scales.
-- Explain remaining heteroscedasticity and autocorrelation.
-- Mention HAC(168) uncertainty and the no-causality limitation.
+- Compare `cnt` with `log1p(cnt)`: adjusted R-squared 0.812 versus 0.927.
+- Breusch--Pagan 4281.6 versus 1676.6.
+- Report hour 0.878, weather 0.120, season 0.168, year 0.264.
 
-## 8. Simple explanatory comparison
+## 8. Regression and residual diagnostics
 
-- Compare additive M0 with interaction M1.
-- Adjusted R-squared increases from 0.824 to 0.927.
-- Explain the hierarchy principle and why one interaction is enough.
+- Show the single model formula with 58 parameters.
+- Residual ACF: 0.612 at lag 1, 0.243 at lag 24, 0.200 at lag 168.
+- Emphasise that the test set carries the predictive evidence.
 
 ## 9. Temporal prediction
 
-- Explain Q2/Q3 expanding-window selection and untouched Q4 holdout.
-- Show `holdout_predictions.png`.
-- P1: MAE 51.99, RMSE 83.07, out-of-sample R-squared 0.830.
+- Train through 30 September 2012; test on Q4 2012 (2,168 hours).
+- Show `test_predictions.png`.
+- MAE 45.27, RMSE 72.97, test R-squared 0.869.
 
 ## 10. Conclusions and limitations
 
-- Hour by working day is the central structural interaction.
-- Weather and temperature contribute additional information.
-- No randomization; residual dependence remains; extreme weather is sparse.
+- Working-day by hour is the central structural interaction.
+- Weather, season, temperature, and year add adjustment.
+- No randomization; residual dependence remains; severe weather is sparse.
 - List final refinements before submission.

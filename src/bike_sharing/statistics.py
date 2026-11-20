@@ -1,13 +1,11 @@
-"""Statistical summaries and diagnostics shared across analysis scripts."""
+"""Statistical summaries and basic diagnostics shared across analysis scripts."""
 
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
 from scipy import stats
-from statsmodels.stats.anova import anova_lm
 from statsmodels.stats.diagnostic import het_breuschpagan
-from statsmodels.stats.stattools import durbin_watson, jarque_bera
 
 
 def mean_confidence_interval(
@@ -49,32 +47,18 @@ def add_partial_eta_squared(anova_table: pd.DataFrame) -> pd.DataFrame:
     return result
 
 
-def nested_model_table(models: dict[str, object]) -> pd.DataFrame:
-    """Compare ordered nested statsmodels OLS results."""
-    names = list(models)
-    comparison = anova_lm(*(models[name] for name in names))
-    comparison.insert(0, "model", names)
-    return comparison.reset_index(drop=True)
-
-
 def residual_diagnostics(model: object, label: str) -> dict[str, float | str]:
-    """Calculate a concise set of OLS residual diagnostics."""
+    """Calculate basic residual normality and constant-variance diagnostics."""
     residuals = np.asarray(model.resid)
-    jb_stat, jb_pvalue, skew, kurtosis = jarque_bera(residuals)
-    bp_stat, bp_pvalue, _, _ = het_breuschpagan(residuals, model.model.exog)
     sample = residuals[np.linspace(0, len(residuals) - 1, min(5_000, len(residuals)), dtype=int)]
     shapiro_stat, shapiro_pvalue = stats.shapiro(sample)
+    bp_stat, bp_pvalue, _, _ = het_breuschpagan(residuals, model.model.exog)
     return {
-        "model": label,
+        "scale": label,
         "n": len(residuals),
         "residual_std": float(np.std(residuals, ddof=1)),
-        "residual_skew": float(skew),
-        "residual_kurtosis": float(kurtosis),
-        "jarque_bera": float(jb_stat),
-        "jarque_bera_p": float(jb_pvalue),
         "shapiro_w_5000": float(shapiro_stat),
         "shapiro_p_5000": float(shapiro_pvalue),
         "breusch_pagan": float(bp_stat),
         "breusch_pagan_p": float(bp_pvalue),
-        "durbin_watson": float(durbin_watson(residuals)),
     }

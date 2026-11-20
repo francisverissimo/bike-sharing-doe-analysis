@@ -261,3 +261,28 @@ generated outputs and Git history but are removed from the main narrative.
 and state explicitly that the log scale is a variance-and-fit compromise, not a
 normality pass. The bilingual tutorials explain the omitted tests as
 supplementary material.
+
+## 2026-11-20 — Adopt the final proposal-compatible scope
+
+**Question:** Which analysis should the submitted papers present?
+
+**Evidence:** The proposal lists the dataset, a DOE-informed description, tests
+and transformations, interactions, and prediction. A single model with the
+prespecified `hr × workingday` interaction already addresses those items, and the
+proposal includes `yr` as a factor. A split at the end of September 2012 keeps
+both years in the training data so that `yr` remains estimable.
+
+**Decision:** The final papers present exactly ten elements: descriptive analysis
+of `cnt`; the factors `hr`, `workingday`, `weathersit`, and `season`; main-effect
+plots; one `workingday × hr` interaction plot; one factorial ANOVA; comparison of
+`cnt` and `log1p(cnt)`; one regression model with `hr × workingday + weathersit +
+season + temp + hum + windspeed + yr`; basic residual diagnostics; one temporal
+train/test split; and MAE, RMSE, and R-squared on the test set. The papers present
+only this analysis and do not discuss earlier analytical iterations.
+
+**Consequence:** Both article sources, the didactic guides, the protocol, the
+status notes, the presentation outlines, and the generated summaries now describe
+this same scope. `weathersit` is used with its four original levels; the response
+is `log1p(cnt)`; train contains 15,211 hours through September 2012 and test
+contains 2,168 hours in Q4 2012. Test MAE is 45.27, RMSE 72.97, and R-squared
+0.869. Only the artifacts used by these documents are generated.

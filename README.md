@@ -18,7 +18,7 @@ Washington, D.C. (2011–2012). Its primary goals are to:
 
 ## Status
 
-The simplified bilingual analysis is available on the
+The bilingual analysis is available on the
 `feat/simplified-bilingual-analysis` branch. The statistical protocol is documented in
 [`docs/analysis_protocol.md`](docs/analysis_protocol.md), and consequential
 methodological decisions are recorded in
@@ -77,14 +77,16 @@ Activate the environment manually when needed:
 source .venv/bin/activate
 ```
 
-Run the complete MVP pipeline with:
+Run the complete analysis pipeline with:
 
 ```bash
 make all
 ```
 
 This command audits the data and reproduces every table and figure used by the
-paper draft. The active comparison contains only additive M0 and interaction M1.
+papers. The analysis uses one regression model with the `workingday × hr`
+interaction, weather situation, season, temperature, humidity, wind speed, and
+year.
 Individual stages are available as `make validate`, `make eda`,
 `make doe`, `make assumptions`, `make models`, `make prediction`, and
 `make report-assets`.

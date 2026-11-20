@@ -40,6 +40,7 @@ paper/*.out
 paper/*.synctex.gz
 paper/*.toc
 paper/main.pdf
+paper/main-pt-br.pdf
 
 # Test and analysis scratch files
 *.tmp

@@ -1,99 +1,88 @@
-# Guia didático da análise simplificada
+# Guia didático da análise
 
-Este documento explica o trabalho passo a passo. O objetivo não é apenas mostrar
-os resultados, mas ajudar a revisar os conceitos estatísticos usados e relacionar
-cada conceito ao código do projeto.
+Este documento explica o trabalho passo a passo. Seu objetivo não é apenas
+apresentar resultados, mas também revisar os conceitos estatísticos e conectá-los
+ao código do projeto.
 
-Uma versão equivalente em inglês está em [`tutorial-en.md`](tutorial-en.md).
+Uma versão equivalente em inglês está disponível em
+[`tutorial-en.md`](tutorial-en.md).
 
-## 1. Qual é a pergunta do trabalho?
+## 1. Qual é a pergunta de pesquisa?
 
-Queremos responder duas perguntas relacionadas, mas diferentes:
+Respondemos a duas perguntas relacionadas, mas distintas:
 
 1. **Explicação:** quais fatores estão associados à demanda horária por
-   bicicletas e, principalmente, o efeito da hora muda entre dias úteis e dias
-   não úteis?
-2. **Predição:** esses fatores permitem prever a demanda de períodos futuros?
+   bicicletas e, em especial, o efeito da hora difere entre dias úteis e não
+   úteis?
+2. **Predição:** esses fatores conseguem prever a demanda em um período posterior?
 
-A variável que queremos explicar e prever é `cnt`, o total de bicicletas
-alugadas em uma hora.
+A resposta é `cnt`, o total de bicicletas alugadas durante uma hora.
 
-## 2. Por que o estudo é observacional?
+## 2. Por que este é um estudo observacional?
 
-Em um experimento controlado, os pesquisadores escolhem tratamentos e os
-atribuem aleatoriamente às unidades experimentais. Isso não aconteceu aqui. Os
-dados foram registrados durante a operação real do Capital Bikeshare.
+Em um experimento controlado, os pesquisadores escolhem os tratamentos e os
+distribuem aleatoriamente entre as unidades experimentais. Isso não aconteceu
+aqui. Os registros vieram da operação real do Capital Bikeshare.
 
-- Ninguém escolheu aleatoriamente se um dia teria chuva.
-- Ninguém sorteou quais horas seriam dias úteis.
+- Ninguém distribuiu dias chuvosos aleatoriamente.
+- Ninguém randomizou quais horas pertenciam a dias úteis.
 - Estação, temperatura e umidade ocorreram naturalmente.
 
-Portanto, este é um **estudo observacional com estrutura fatorial natural**.
-Podemos afirmar que variáveis estão associadas, mas não que uma delas causou a
-outra.
+Trata-se, portanto, de um **estudo observacional com estrutura fatorial natural**.
+Podemos descrever associações, mas não afirmar que uma variável causou outra.
 
-### Conceitos do planejamento
+### Terminologia do desenho
 
-| Conceito | Aplicação neste trabalho |
+| Conceito | Aplicação neste estudo |
 |---|---|
-| Unidade observacional | Uma hora registrada em uma determinada data |
-| Resposta | `cnt`, total de aluguéis naquela hora |
-| Fatores | Hora, dia útil, clima, estação e ano |
-| Covariáveis | Temperatura, umidade e velocidade do vento |
-| Níveis | Por exemplo, `workingday` possui níveis 0 e 1 |
-| Randomização | Não existe |
-| Blocos planejados | Não existem |
-| Repetição temporal | As observações são sequenciais e correlacionadas no tempo |
+| Unidade observacional | Uma hora registrada em uma data |
+| Resposta | `cnt`, total de aluguéis na hora |
+| Fatores | Hora, tipo de dia, situação climática, estação |
+| Covariáveis | Temperatura, umidade, velocidade do vento |
+| Níveis | Por exemplo, `workingday` tem níveis 0 e 1 |
+| Randomização | Nenhuma |
+| Blocos planejados | Nenhum |
+| Repetição temporal | Registros sequenciais e correlacionados no tempo |
 
-### Por que não usamos OFAT?
+### Por que não usar OFAT?
 
-OFAT significa *one factor at a time*: variar ou examinar um fator por vez. Isso
-seria inadequado porque o comportamento de uma variável pode depender de outra.
+OFAT significa *one factor at a time* (um fator por vez). Seria inadequado porque
+o comportamento de uma variável pode depender de outra.
 
-Neste dataset, o efeito da hora depende do tipo de dia. Às 8h, um dia útil tem
-grande demanda de deslocamento para o trabalho. Às 8h de um domingo, o padrão é
-diferente. Essa dependência é uma **interação**.
+Às 08:00, um dia útil tem alta demanda de deslocamento. Às 08:00 de um domingo, o
+padrão é diferente. Essa dependência é uma **interação**.
 
-## 3. Conhecendo o dataset
+## 3. Entendendo a base de dados
 
 O arquivo principal é `dataset/hour.csv`.
 
 - 17.379 observações;
-- 731 datas, entre 01/01/2011 e 31/12/2012;
+- 731 datas de 1 de janeiro de 2011 a 31 de dezembro de 2012;
 - `cnt` varia de 1 a 977;
-- não há valores ausentes nas linhas registradas;
-- há 165 horários ausentes na sequência completa do calendário;
+- nenhuma célula ausente nas linhas registradas;
+- 165 horários ausentes no calendário horário completo;
 - `cnt = casual + registered` em todas as linhas.
 
-As horas ausentes não foram preenchidas. Uma linha ausente não significa que
-ninguém alugou uma bicicleta; atribuir zero seria uma suposição sem evidência.
+Os horários ausentes não foram preenchidos. Um registro ausente não implica zero
+aluguéis, portanto atribuir zero introduziria uma suposição sem apoio.
 
 ### Variáveis excluídas
 
-- `casual` e `registered`: formam `cnt`. Usá-las para prever `cnt` seria
-  **vazamento de alvo** (*target leakage*).
-- `atemp`: tem correlação 0,988 com `temp`. As duas juntas apresentam VIF acima
-  de 43. Mantivemos somente `temp` para evitar multicolinearidade.
-- `instant`: é apenas o identificador sequencial da linha.
+- `casual` e `registered`: compõem `cnt`. Usá-las para prever `cnt` seria
+  **vazamento da resposta**.
+- `atemp`: tem correlação 0,988 com `temp`. Usamos apenas `temp` para evitar
+  preditores redundantes.
+- `instant`: é apenas um identificador sequencial de linha.
 
-### Agrupamento do clima
-
-O fator original `weathersit` tem quatro níveis, mas o nível 4 aparece somente
-três vezes. Não há dados suficientes para estimar um efeito separado estável.
-
-Para a inferência, usamos:
-
-1. claro ou parcialmente nublado;
-2. névoa ou nublado;
-3. precipitação ou condição adversa, reunindo os níveis originais 3 e 4.
-
-O arquivo original permanece intacto. O agrupamento é criado em memória por
-`src/bike_sharing/data.py`.
+Os quatro fatores entram na análise exatamente como registrados: `hr`,
+`workingday`, `weathersit` e `season`. A situação climática tem quatro níveis; o
+nível 4 ocorre em apenas três horas, de modo que sua média descritiva é
+imprecisa.
 
 ## 4. Análise descritiva
 
-A estatística descritiva resume o que foi observado sem tentar generalizar por
-meio de um modelo.
+Estatísticas descritivas resumem os dados observados sem ajustar um modelo
+inferencial.
 
 | Medida | Resultado |
 |---|---:|
@@ -106,298 +95,233 @@ meio de um modelo.
 | Mínimo | 1 |
 | Máximo | 977 |
 
-A média é maior que a mediana. Isso indica uma distribuição assimétrica à
-direita: muitas horas têm demanda baixa ou moderada e algumas horas têm demanda
-muito alta.
+A média excede a mediana, indicando distribuição assimétrica à direita: muitas
+horas têm demanda baixa ou moderada, enquanto algumas têm demanda muito alta.
 
-### Como interpretar os gráficos
+### Como ler os gráficos
 
-- **Histograma:** mostra quantas horas caem em cada intervalo de demanda.
-- **Boxplot:** compara mediana, quartis e valores extremos entre grupos.
-- **Gráfico de efeitos principais:** mostra a média da resposta em cada nível de
-  um fator, ignorando visualmente as interações.
-- **Gráfico de interação:** mostra as médias de um fator separadas pelos níveis de
-  outro fator.
+- **Histograma:** mostra o número de horas em cada faixa de demanda.
+- **Boxplot:** compara medianas, quartis e observações extremas entre grupos.
+- **Gráfico de efeitos principais:** mostra a média da resposta em cada nível do fator.
+- **Gráfico de interação:** mostra as médias de um fator separadamente para os níveis de outro.
 
-As médias observadas por clima são:
+Médias observadas por situação climática:
 
-| Clima | Média de aluguéis/hora |
+| Situação climática | Média de aluguéis/hora |
 |---|---:|
 | Claro/parcialmente nublado | 204,87 |
 | Névoa/nublado | 175,17 |
-| Precipitação/adverso | 111,50 |
+| Precipitação leve | 111,58 |
+| Tempo severo (3 horas) | 74,33 |
 
-Essas médias são **não ajustadas**. Parte da diferença pode estar relacionada a
-hora, estação, temperatura ou outras variáveis.
+Essas são médias **não ajustadas**. Parte de cada diferença pode estar relacionada
+a hora, estação, temperatura ou outras variáveis.
 
 ## 5. Por que transformar `cnt`?
 
-A regressão linear não exige que a resposta original tenha distribuição normal.
-Ela pressupõe, entre outros pontos, que os **resíduos** tenham comportamento
-adequado e variância aproximadamente constante.
+A regressão linear não exige que a resposta bruta seja normalmente distribuída.
+Entre outras pressuposições, os **resíduos** devem ter distribuição adequada e
+variância aproximadamente constante.
 
-Contagens costumam apresentar assimetria e variância crescente. Comparamos:
+Contagens costumam ser assimétricas e ter variância que cresce com a média.
+Comparamos:
 
 \[
-Y_1 = cnt, \qquad Y_2 = \sqrt{cnt}, \qquad
-Y_3 = \log(1+cnt).
+Y_1 = cnt, \qquad Y_2 = \log(1+cnt).
 \]
 
-Somamos 1 antes do logaritmo para que a expressão continue definida caso uma
-contagem zero apareça em outro conjunto de dados.
+Somar 1 mantém o logaritmo definido caso apareça uma contagem zero em outra base.
 
-### Evidências usadas na escolha
-
-Para a estrutura M1:
+### Evidências para a escolha
 
 | Resposta | Shapiro--Wilk \(W\) | Breusch--Pagan | \(R^2\) ajustado |
 |---|---:|---:|---:|
-| `cnt` | 0,972 | 4282,8 | 0,812 |
-| `sqrt(cnt)` | 0,984 | 2039,7 | 0,893 |
-| `log1p(cnt)` | 0,949 | 1672,5 | 0,927 |
+| `cnt` | 0,972 | 4281,6 | 0,812 |
+| `log1p(cnt)` | 0,949 | 1676,6 | 0,927 |
 
-Os valores de \(p\) de Shapiro--Wilk e Breusch--Pagan ficaram abaixo de 0,001
-nas três escalas. Escolhemos `log1p(cnt)` porque apresentou melhor ajuste e a
-menor evidência relativa de heterocedasticidade. Note que Shapiro--Wilk sozinho
-favoreceria `sqrt(cnt)`; a decisão pelo log é um compromisso entre variância e
-ajuste, não uma aprovação da normalidade.
+Os valores de \(p\) dos dois testes ficaram abaixo de 0,001 nas duas escalas.
+Usamos `log1p(cnt)` porque ele se ajusta melhor e reduz a estatística de
+Breusch--Pagan. Shapiro--Wilk, isoladamente, não favorece essa escala; a decisão é
+um compromisso entre variância e ajuste, não uma afirmação de resíduos normais.
 
-Jarque--Bera, Levene, Box--Cox e Durbin--Watson ainda podem ser calculados a
-partir dos artefatos em `outputs/tables/`, mas não fazem parte da narrativa
-principal do artigo. Com 17 mil observações, testes como Shapiro--Wilk detectam
-até desvios pequenos. Por isso, olhamos testes, gráficos e tamanho dos desvios em
-conjunto.
+Com mais de 17 mil observações, testes formais detectam até desvios pequenos. Por
+isso, testes, gráficos e magnitude dos desvios são lidos em conjunto.
 
 ## 6. Efeito principal e interação
 
-Um **efeito principal** descreve como a média muda entre os níveis de um fator,
-mantendo a linguagem de associação neste estudo observacional.
+Um **efeito principal** descreve como a média muda entre os níveis de um fator.
+Neste estudo observacional, usamos linguagem de associação.
 
 Uma **interação** ocorre quando o comportamento de um fator depende do nível de
-outro. Nosso caso central é:
+outro. Nosso caso pré-especificado é:
 
 \[
-\text{hora} \times \text{dia útil}.
+\text{hora} \times \text{tipo de dia}.
 \]
 
-No gráfico `outputs/figures/primary_interaction.png`:
+Em `outputs/figures/workingday_hr_interaction.png`:
 
-- dias úteis apresentam picos próximos de 8h e 17h--18h;
-- dias não úteis apresentam uma curva mais ampla durante o meio do dia;
-- as linhas não são paralelas e chegam a se cruzar.
+- dias úteis têm pico por volta das 08:00 e entre 17:00--18:00;
+- dias não úteis apresentam perfil mais amplo ao meio do dia;
+- as linhas não são paralelas e se cruzam.
 
-Isso mostra por que a média geral de dias úteis, isoladamente, é pouco
-informativa. O tipo de dia precisa ser interpretado junto da hora.
+A média geral do tipo de dia, portanto, não basta. O tipo de dia precisa ser
+interpretado em conjunto com a hora.
 
-## 7. Os dois modelos explicativos
+## 7. Um único modelo de regressão
 
-### M0: modelo aditivo
-
-```text
-log1p(cnt) ~ hour + workingday + weather + season
-           + temp + humidity + windspeed + year
-```
-
-M0 supõe que o formato do efeito horário é igual em dias úteis e não úteis. O
-tipo de dia apenas deslocaria toda a curva para cima ou para baixo.
-
-### M1: modelo com a interação principal
+O modelo foi especificado uma vez:
 
 ```text
-log1p(cnt) ~ hour * workingday + weather + season
-           + temp + humidity + windspeed + year
+log1p(cnt) ~ hr * workingday + weathersit + season
+            + temp + hum + windspeed + yr
 ```
 
-Na fórmula, `hour * workingday` representa:
+Na fórmula `statsmodels` usada no código, os termos categóricos são escritos
+`C(hr)`, `C(workingday)`, `C(weathersit)`, `C(season)` e `C(yr)`.
+
+Em uma fórmula de modelo, `hr * workingday` se expande para:
 
 ```text
-hour + workingday + hour:workingday
+hr + workingday + hr:workingday
 ```
 
-Isso respeita o **princípio hierárquico**: se uma interação está no modelo, seus
-efeitos principais também permanecem.
+Isso segue o **princípio da hierarquia**: quando uma interação está presente,
+seus efeitos principais componentes permanecem no modelo.
 
-### Por que `hour` é categórica?
+### Por que tratar a hora como categórica?
 
-Se tratássemos hora como um número linear, o modelo tentaria representar a
-mudança entre 0h e 23h por uma única reta. O padrão real possui madrugada, dois
-picos e quedas; por isso usamos 24 níveis categóricos.
+Tratar a hora como um único número linear forçaria uma mudança retilínea das
+00:00 às 23:00. O padrão real contém uma depressão noturna, dois picos em dias
+úteis e quedas posteriores. Por isso usamos 24 níveis categóricos.
 
-Essa escolha aumenta o número de parâmetros. M1 possui 57 parâmetros, mas sua
-interpretação principal vem do gráfico de interação, não de uma lista com todas
-as variáveis indicadoras.
+O modelo tem 58 parâmetros porque um fator hora com 24 níveis interage com um
+fator binário. A curva de interação é mais útil do que listar todos os
+coeficientes indicadores.
 
 ## 8. ANOVA e tamanho de efeito
 
-A ANOVA divide a variação da resposta entre os termos do modelo e os resíduos.
+A ANOVA particiona a variação da resposta entre os termos do modelo e o erro
+residual.
 
-- **F:** compara a variação explicada por um termo com a variação residual.
-- **p-valor:** mede quão incompatíveis os dados são com uma hipótese nula, sob as
-  premissas do teste.
-- **Eta quadrado parcial:** estima a proporção relativa da variação atribuída ao
-  termo após considerar o erro do modelo.
+- **F:** compara a variação atribuída a um termo com a variação residual.
+- **Valor-p:** mede a incompatibilidade com uma hipótese nula sob as pressuposições do teste.
+- **Eta quadrado parcial:** descreve a variação relativa atribuída a um termo após
+  considerar o erro do modelo.
 
-Resultados centrais de M1:
+Resultados centrais:
 
-| Termo | F | p-valor | Eta quadrado parcial |
+| Termo | F | Valor-p | Eta quadrado parcial |
 |---|---:|---:|---:|
-| Hora | 5416,44 | < 0,001 | 0,878 |
-| Dia útil | 12,27 | < 0,001 | 0,001 |
-| Hora × dia útil | 1079,55 | < 0,001 | 0,589 |
-| Clima | 1180,12 | < 0,001 | 0,120 |
-| Estação | 1163,90 | < 0,001 | 0,168 |
+| Hora | 5415,36 | < 0,001 | 0,878 |
+| Tipo de dia | 12,26 | < 0,001 | 0,001 |
+| Situação climática | 786,71 | < 0,001 | 0,120 |
+| Estação | 1163,59 | < 0,001 | 0,168 |
+| Ano | 6203,57 | < 0,001 | 0,264 |
+| Hora × tipo de dia | 1079,34 | < 0,001 | 0,589 |
 
-O p-valor de dia útil é pequeno, mas seu efeito principal é muito menor que a
-interação. Esse é um exemplo de por que não devemos concluir apenas com base em
-“significativo” ou “não significativo”.
+O valor-p do tipo de dia é pequeno, mas seu tamanho de efeito principal é muito
+menor que o da interação. Isso mostra que “significativo” ou “não significativo”
+não basta para a interpretação. O modelo tem $R^2$ ajustado $0{,}927$,
+AIC $15916{,}2$ e BIC $16366{,}4$ em `log1p(cnt)`.
 
-## 9. Comparação M0 versus M1
-
-| Modelo | Parâmetros | \(R^2\) ajustado | AIC | BIC |
-|---|---:|---:|---:|---:|
-| M0 | 34 | 0,824 | 31323,3 | 31587,2 |
-| M1 | 57 | 0,927 | 15914,2 | 16356,7 |
-
-- O **\(R^2\) ajustado** recompensa explicação, mas penaliza parcialmente a
-  inclusão de parâmetros.
-- **AIC** e **BIC** equilibram ajuste e complexidade; valores menores são
-  preferíveis quando os modelos usam a mesma resposta e os mesmos dados.
-- O teste F aninhado para adicionar a interação produziu \(F=1079,55\) e
-  \(p<0,001\).
-
-As três evidências favorecem M1. Mais importante, a melhoria tem uma explicação
-comportamental clara: deslocamentos de trabalho geram um perfil horário próprio.
-
-## 10. Diagnósticos do modelo
+## 9. Diagnósticos básicos dos resíduos
 
 ### Resíduos versus ajustados
 
-Verifica forma funcional e variância constante. Um padrão em funil sugere
-heterocedasticidade.
+Este gráfico verifica forma funcional e variância constante. Um padrão em funil
+sugere heterocedasticidade.
 
-### Q--Q plot
+### Gráfico Q--Q
 
-Compara quantis dos resíduos com quantis normais. Desvios nas extremidades
-indicam caudas não normais.
-
-### VIF
-
-O *Variance Inflation Factor* mede quanto a correlação entre preditores aumenta a
-variância de um coeficiente. A remoção de `atemp` reduziu os VIF das variáveis
-numéricas selecionadas para aproximadamente 1,1 ou menos.
+Compara quantis dos resíduos com quantis normais. Desvios nas caudas indicam
+caudas não normais.
 
 ### ACF e dependência temporal
 
-A função de autocorrelação (ACF) dos resíduos de M1 foi:
+A função de autocorrelação (ACF) dos resíduos é:
 
-- lag 1: 0,612;
-- lag 24: 0,243;
-- lag 168: 0,200.
+- defasagem 1: 0,612;
+- defasagem 24: 0,243;
+- defasagem 168: 0,200.
 
-O teste de Durbin--Watson foi mantido apenas nos artefatos gerados; na narrativa
-principal, a ACF resume melhor a dependência em várias escalas temporais. Os lags
-são horas **observadas**, pois existem lacunas no calendário.
+São defasagens em horas **observadas**, pois o calendário tem lacunas. A ACF mostra
+que permanece dependência temporal após os fatores incluídos. Os valores-p da
+ANOVA são lidos de forma descritiva, e o conjunto de teste temporal é a principal
+evidência de desempenho preditivo.
 
-### Por que usar HAC?
-
-HAC significa *heteroskedasticity and autocorrelation consistent*. Newey--West
-recalcula erros-padrão e intervalos de confiança considerando heterocedasticidade
-e dependência temporal até um número escolhido de lags.
-
-Usamos 168 lags observados, aproximadamente uma semana. HAC não altera os
-coeficientes nem as previsões; altera a estimativa de incerteza. Ele também não
-elimina toda limitação temporal do estudo.
-
-## 11. Validação preditiva
+## 10. Divisão temporal entre treino e teste
 
 Uma divisão aleatória permitiria que observações futuras ajudassem a prever o
-passado. Para evitar esse vazamento temporal, usamos janelas expansivas:
+passado. Usamos uma única divisão estritamente temporal:
 
-1. treino até março de 2012, validação em Q2/2012;
-2. treino até junho de 2012, validação em Q3/2012;
-3. treino até setembro de 2012, teste final em Q4/2012.
+- **treino:** todas as horas até 30 de setembro de 2012 (15.211 horas);
+- **teste:** de 1 de outubro a 31 de dezembro de 2012 (2.168 horas).
 
-O último período permaneceu fora da escolha do modelo.
+Os dois anos aparecem nos dados de treino, de modo que o fator ano é estimável.
 
-Comparamos:
-
-- **Baseline:** média histórica para cada combinação de hora e tipo de dia;
-- **P0:** versão preditiva aditiva de M0;
-- **P1:** versão preditiva com `hour × workingday`.
-
-Os modelos preditivos substituem o ano categórico por um índice temporal
-contínuo. Uma categoria “2012” não consegue representar um ano futuro ainda não
-observado, enquanto um índice temporal pode representar tendência.
-
-As previsões feitas em `log1p(cnt)` voltam à escala de contagem por correção de
-*smearing* de Duan. Aplicar apenas `exp(predição) - 1` produziria viés porque a
-exponencial de uma média não é igual à média da exponencial.
+As previsões ajustadas em `log1p(cnt)` voltam à escala de contagem com a correção
+de smearing de Duan. Calcular apenas `exp(previsão) - 1` seria viesado, pois a
+exponencial de uma média não é a média da exponencial.
 
 ### Métricas
 
-- **MAE:** média dos erros absolutos, na unidade “aluguéis”.
-- **RMSE:** dá peso maior a erros grandes.
+- **MAE:** erro absoluto médio em aluguéis.
+- **RMSE:** dá mais peso a erros grandes.
 - **\(R^2\) fora da amostra:** compara o modelo com a média do período de teste.
-- **RMSLE:** mede erro na escala logarítmica e reduz o domínio das maiores
-  contagens.
 
-### Holdout final Q4/2012
+### Resultados no teste
 
-| Modelo | MAE | RMSE | \(R^2\) | RMSLE |
-|---|---:|---:|---:|---:|
-| Baseline | 79,95 | 119,59 | 0,648 | 0,604 |
-| P0 | 85,65 | 121,25 | 0,638 | 0,725 |
-| P1 | 51,99 | 83,07 | 0,830 | 0,524 |
+| MAE | RMSE | \(R^2\) |
+|---:|---:|---:|
+| 45,27 | 72,97 | 0,869 |
 
-P1 supera tanto o modelo aditivo quanto o baseline. A interação não é apenas
-estatisticamente detectável: ela também melhora a previsão de dados futuros.
+## 11. O que podemos concluir?
 
-## 12. O que podemos concluir?
+1. A hora é o principal fator observado de demanda.
+2. Seu comportamento depende fortemente do tipo de dia.
+3. Situação climática e estação apresentam associações relevantes.
+4. A escala logarítmica apresenta melhor ajuste e comportamento da variância.
+5. O modelo prevê um trimestre não visto com \(R^2 = 0{,}869\).
+6. Associações não estabelecem causalidade.
+7. Permanece dependência residual após o ajuste.
 
-1. Hora é o principal fator observado da demanda.
-2. Seu comportamento depende fortemente de o dia ser útil ou não.
-3. Clima e estação apresentam associações importantes com demanda.
-4. M1 representa melhor os dados que M0.
-5. A mesma interação melhora a previsão temporal.
-6. As associações não demonstram causalidade.
-7. Ainda existe dependência nos resíduos, mesmo após o ajuste.
+## 12. Como o código está organizado?
 
-## 13. Como o código está organizado?
-
-| Arquivo | Função |
+| Arquivo | Finalidade |
 |---|---|
 | `analysis/00_validate_data.py` | Verifica integridade, tipos, intervalos e lacunas |
-| `analysis/01_descriptive_analysis.py` | Gera resumos, histogramas, boxplots e correlações |
-| `analysis/02_doe_analysis.py` | Gera efeitos, interação principal, ANOVA e Tukey |
-| `analysis/03_assumptions_transformations.py` | Compara escalas e verifica pressupostos |
-| `analysis/04_regression_models.py` | Compara M0 e M1 e gera diagnósticos/HAC |
-| `analysis/05_temporal_validation.py` | Avalia baseline, P0 e P1 no tempo |
-| `analysis/06_report_assets.py` | Produz tabelas e resumos usados no artigo |
-| `src/bike_sharing/` | Contém funções compartilhadas pelos scripts |
+| `analysis/01_descriptive_analysis.py` | Cria resumos, histogramas, boxplots e correlações |
+| `analysis/02_doe_analysis.py` | Cria efeitos principais, gráfico de interação e ANOVA fatorial |
+| `analysis/03_assumptions_transformations.py` | Compara escalas da resposta e diagnósticos básicos |
+| `analysis/04_regression_models.py` | Ajusta o único modelo de regressão |
+| `analysis/05_temporal_validation.py` | Avalia o modelo no conjunto de teste temporal |
+| `analysis/06_report_assets.py` | Cria tabelas para os artigos e resumos bilíngues |
+| `src/bike_sharing/` | Funções compartilhadas chamadas pelos scripts |
 
-Para executar tudo:
+Execute a análise completa com:
 
 ```bash
 make setup
 make all
 ```
 
-Para verificar o código:
+Verifique o código com:
 
 ```bash
 make lint
 make test
 ```
 
-## 14. Perguntas para revisar antes da apresentação
+## 13. Perguntas de revisão antes da apresentação
 
-1. Por que este trabalho não permite conclusões causais?
-2. Qual é a diferença entre fator, nível, covariável e resposta?
-3. Por que `workingday` não deve ser interpretada sem `hr`?
-4. O que a interação acrescenta ao M0?
-5. Por que normalidade deve ser avaliada nos resíduos?
-6. Por que removemos `atemp`?
-7. O que HAC corrige e o que ele não corrige?
-8. Por que a divisão temporal é melhor que uma divisão aleatória aqui?
-9. Qual é a diferença entre o objetivo explicativo e o preditivo?
-10. Por que um p-valor pequeno não garante importância prática?
+1. Por que este estudo não permite conclusões causais?
+2. Qual a diferença entre fator, nível, covariável e resposta?
+3. Por que `workingday` não deve ser interpretado sem `hr`?
+4. Como a interação aparece na fórmula do modelo?
+5. Por que a normalidade é avaliada nos resíduos e não na resposta bruta?
+6. Por que usamos `temp` e não `atemp`?
+7. O que a ACF dos resíduos nos informa?
+8. Por que a divisão temporal é preferível à divisão aleatória aqui?
+9. Como diferem os objetivos explicativo e preditivo?
+10. Por que um valor-p pequeno não garante importância prática?

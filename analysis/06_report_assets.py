@@ -1,4 +1,4 @@
-"""Create concise LaTeX tables and a readable MVP results summary."""
+"""Create LaTeX tables and readable result summaries for both article versions."""
 
 from __future__ import annotations
 
@@ -35,6 +35,19 @@ def format_pt_br(value: float, decimals: int = 2) -> str:
     return formatted.replace(",", "TEMP").replace(".", ",").replace("TEMP", ".")
 
 
+ANOVA_LABELS = {
+    "C(hr)": "Hour",
+    "C(workingday)": "Working day",
+    "C(weathersit)": "Weather situation",
+    "C(season)": "Season",
+    "C(yr)": "Year",
+    "C(hr):C(workingday)": "Hour x working day",
+    "temp": "Temperature",
+    "hum": "Humidity",
+    "windspeed": "Wind speed",
+}
+
+
 def main() -> None:
     ensure_output_directories()
 
@@ -53,174 +66,135 @@ def main() -> None:
     )
     write_latex(descriptive, "paper_descriptive.tex", "rrrrrrrr")
 
-    diagnostics = pd.read_csv(TABLES_DIR / "transformation_diagnostics.csv")
-    paper_diagnostics = pd.DataFrame(
-        {
-            "Scale": [r"cnt", r"$\sqrt{cnt}$", r"$\log(1+cnt)$"],
-            "Shapiro--Wilk $W$ ($p$)": [
-                format_test_stat(row.shapiro_w_5000, row.shapiro_p_5000, 3)
-                for row in diagnostics.itertuples()
-            ],
-            "Breusch--Pagan LM ($p$)": [
-                format_test_stat(row.breusch_pagan, row.breusch_pagan_p, 1)
-                for row in diagnostics.itertuples()
-            ],
-            "Adjusted $R^2$": [f"{value:.3f}" for value in diagnostics["r_squared_adj"]],
-        }
+    anova = pd.read_csv(TABLES_DIR / "factorial_anova.csv").rename(
+        columns={"Unnamed: 0": "term", "partial_eta_sq": "eta"}
     )
-    write_latex(paper_diagnostics, "paper_diagnostics.tex", "lrrr", escape=False)
-
-    anova = pd.read_csv(TABLES_DIR / "final_explanatory_anova.csv").rename(
-        columns={"Unnamed: 0": "Term", "partial_eta_sq": "Partial eta-squared"}
-    )
-    selected_terms = [
-        "C(hr)",
-        "C(workingday)",
-        "C(weather_group)",
-        "C(season)",
-        "C(yr)",
-        "C(hr):C(workingday)",
-        "temp",
-        "hum",
-        "windspeed",
-    ]
-    anova = anova[anova["Term"].isin(selected_terms)][
-        ["Term", "df", "F", "PR(>F)", "Partial eta-squared"]
-    ].rename(columns={"PR(>F)": "p-value"})
-    anova["Term"] = anova["Term"].replace(
-        {
-            "C(hr)": "Hour",
-            "C(workingday)": "Working day",
-            "C(weather_group)": "Weather",
-            "C(season)": "Season",
-            "C(yr)": "Year",
-            "C(hr):C(workingday)": "Hour x working day",
-            "temp": "Temperature",
-            "hum": "Humidity",
-            "windspeed": "Wind speed",
-        }
-    )
+    anova = anova[anova["term"].isin(ANOVA_LABELS)][
+        ["term", "df", "F", "PR(>F)", "eta"]
+    ].rename(columns={"PR(>F)": "p-value", "eta": "Partial eta-squared"})
+    anova["term"] = anova["term"].map(ANOVA_LABELS)
+    anova["df"] = anova["df"].astype(int)
     anova["p-value"] = anova["p-value"].map(format_p_value)
+    anova = anova.rename(columns={"term": "Term"})
     write_latex(anova, "paper_anova.tex", "lrrlr", escape=False)
 
-    models = pd.read_csv(TABLES_DIR / "explanatory_model_comparison.csv")[
-        ["model", "parameters", "adjusted_r_squared", "aic", "bic"]
-    ].rename(
-        columns={
-            "model": "Model",
-            "parameters": "Parameters",
-            "adjusted_r_squared": "Adjusted R-squared",
-            "aic": "AIC",
-            "bic": "BIC",
+    scales = pd.read_csv(TABLES_DIR / "scale_comparison.csv").set_index("scale")
+    scale_table = pd.DataFrame(
+        {
+            "Response": [r"$cnt$", r"$\log(1+cnt)$"],
+            "Adjusted $R^2$": [
+                f"{scales.loc['cnt', 'adjusted_r_squared']:.3f}",
+                f"{scales.loc['log1p_cnt', 'adjusted_r_squared']:.3f}",
+            ],
+            "Shapiro--Wilk $W$ ($p$)": [
+                format_test_stat(
+                    scales.loc[scale, "shapiro_w_5000"], scales.loc[scale, "shapiro_p_5000"], 3
+                )
+                for scale in ("cnt", "log1p_cnt")
+            ],
+            "Breusch--Pagan LM ($p$)": [
+                format_test_stat(
+                    scales.loc[scale, "breusch_pagan"], scales.loc[scale, "breusch_pagan_p"], 1
+                )
+                for scale in ("cnt", "log1p_cnt")
+            ],
         }
     )
-    models["Model"] = ["M0", "M1"]
-    write_latex(models, "paper_models.tex", "lrrrr")
+    write_latex(scale_table, "paper_scale_comparison.tex", "lrrr", escape=False)
 
-    validation = pd.read_csv(TABLES_DIR / "temporal_validation_results.csv")
-    validation = validation[validation["split"] == "holdout_q4_2012"][
-        ["model", "mae", "rmse", "r2", "rmsle"]
-    ].rename(
-        columns={
-            "model": "Model",
-            "mae": "MAE",
-            "rmse": "RMSE",
-            "r2": "R-squared",
-            "rmsle": "RMSLE",
+    test = pd.read_csv(TABLES_DIR / "test_metrics.csv").iloc[0]
+    test_table = pd.DataFrame(
+        {
+            "MAE": [test["mae"]],
+            "RMSE": [test["rmse"]],
+            "Test $R^2$": [test["r2"]],
         }
     )
-    validation["Model"] = ["Baseline", "P0", "P1"]
-    write_latex(validation, "paper_holdout.tex", "lrrrr")
+    write_latex(test_table, "paper_test_metrics.tex", "rrr", escape=False)
 
-    final_model = models.iloc[-1]
-    holdout = pd.read_csv(TABLES_DIR / "final_holdout_result.csv").iloc[0]
-    weather = pd.read_csv(TABLES_DIR / "summary_by_weather.csv")
-    acf = pd.read_csv(TABLES_DIR / "residual_acf_log_model.csv").set_index("lag")["acf"]
-    interaction_eta = float(
-        anova.loc[anova["Term"] == "Hour x working day", "Partial eta-squared"].iloc[0]
-    )
-    hour_eta = float(anova.loc[anova["Term"] == "Hour", "Partial eta-squared"].iloc[0])
-    summary = f"""# MVP results summary
+    model = pd.read_csv(TABLES_DIR / "model_summary.csv").iloc[0]
+    acf = pd.read_csv(TABLES_DIR / "residual_acf.csv").set_index("lag")["acf"]
+    eta = anova.set_index("Term")["Partial eta-squared"]
 
-## Data
+    summary = f"""# Results summary
 
-- {int(response['n']):,} hourly observations from 2011–2012.
-- Mean `cnt`: {response['mean']:.2f}; median: {response['median']:.0f}; SD: {response['std']:.2f}.
-- Range: {response['min']:.0f}–{response['max']:.0f} rentals per observed hour.
-- 165 timestamps are absent from the otherwise hourly calendar sequence.
-- Weather levels 3 and 4 are combined for inference; level 4 has only three rows.
+## Data and descriptive analysis
 
-## Descriptive effects
+- {int(response['n']):,} observed hours from 2011 to 2012.
+- Mean `cnt`: {response['mean']:.2f}; median: {response['median']:.0f};
+  standard deviation: {response['std']:.2f}.
+- Range: {response['min']:.0f}--{response['max']:.0f} rentals per hour;
+  skewness {response['skewness']:.3f}.
+- 165 timestamps are absent from the hourly calendar; no imputation was applied.
+- Weather situation level 4 has only three observations.
 
-- Clear/partly cloudy mean: {weather.iloc[0]['mean']:.2f} rentals/hour.
-- Mist/cloudy mean: {weather.iloc[1]['mean']:.2f} rentals/hour.
-- Precipitation/adverse mean: {weather.iloc[2]['mean']:.2f} rentals/hour.
-- `temp` and `atemp` correlate at 0.988, supporting exclusion of `atemp`.
+## Factorial analysis
 
-## DOE and explanatory regression
-
-- The primary `hour × working day` interaction has partial eta-squared {interaction_eta:.3f}.
-- Hour has partial eta-squared {hour_eta:.3f} in M1.
-- M1 has adjusted R-squared {final_model['Adjusted R-squared']:.3f},
-  AIC {final_model['AIC']:.1f}, and BIC {final_model['BIC']:.1f} on `log1p(cnt)`.
+- Hour has partial eta-squared {eta['Hour']:.3f}; hour by working day has
+  {eta['Hour x working day']:.3f}.
+- Weather situation and season have partial eta-squared
+  {eta['Weather situation']:.3f} and {eta['Season']:.3f}, respectively.
+- The single log-response model uses {int(model['parameters'])} parameters,
+  adjusted R-squared {model['adjusted_r_squared']:.3f},
+  AIC {model['aic']:.1f}, and BIC {model['bic']:.1f}.
 - Residual ACF is {acf[1]:.3f} at lag 1, {acf[24]:.3f} at lag 24, and
-  {acf[168]:.3f} at lag 168; HAC(168) uncertainty is therefore reported.
+  {acf[168]:.3f} at lag 168.
 
-## Prediction
+## Response scale and prediction
 
-- P1 (`hour × working day`) won
-  selection on Q2/Q3 2012 expanding-window validation.
-- On the untouched Q4 2012 holdout (n={int(holdout['evaluation_n'])}), P1 achieved
-  MAE {holdout['mae']:.2f}, RMSE {holdout['rmse']:.2f}, R-squared {holdout['r2']:.3f},
-  and RMSLE {holdout['rmsle']:.3f}.
+- Adjusted R-squared is {scales.loc['cnt', 'adjusted_r_squared']:.3f} for `cnt` and
+  {scales.loc['log1p_cnt', 'adjusted_r_squared']:.3f} for `log1p(cnt)`.
+- Training uses {int(test['train_n']):,} hours through September 2012; the test
+  set contains {int(test['test_n']):,} hours in the final quarter of 2012.
+- Test MAE {test['mae']:.2f}, RMSE {test['rmse']:.2f}, and
+  R-squared {test['r2']:.3f}.
 
-These findings are associations from non-randomized observational data and do
-not establish causal effects.
+These are associations and predictions from non-randomized observational data;
+they do not establish causal effects.
 """
-    (OUTPUT_DIR / "mvp_results.md").write_text(summary, encoding="utf-8")
-    summary_pt = f"""# Resumo dos resultados do MVP simplificado
+    (OUTPUT_DIR / "results_summary.md").write_text(summary, encoding="utf-8")
 
-## Dados
+    summary_pt = f"""# Resumo dos resultados
 
-- {format_pt_br(response['n'], 0)} observações horárias de 2011 a 2012.
+## Dados e análise descritiva
+
+- {format_pt_br(response['n'], 0)} horas observadas entre 2011 e 2012.
 - Média de `cnt`: {format_pt_br(response['mean'])}; mediana:
   {format_pt_br(response['median'], 0)}; desvio-padrão: {format_pt_br(response['std'])}.
-- Intervalo: {format_pt_br(response['min'], 0)}–{format_pt_br(response['max'], 0)}
-  aluguéis por hora observada.
-- Há 165 timestamps ausentes na sequência horária; eles não foram imputados.
-- Os níveis meteorológicos 3 e 4 foram agrupados; o nível 4 possui somente 3 casos.
+- Intervalo: {format_pt_br(response['min'], 0)}--{format_pt_br(response['max'], 0)}
+  aluguéis por hora; assimetria {format_pt_br(response['skewness'], 3)}.
+- Há 165 horários ausentes no calendário; não foi feita imputação.
+- O nível 4 da variável climática possui apenas três observações.
 
-## Resultados descritivos
+## Análise fatorial
 
-- Média com tempo claro/parcialmente nublado: {format_pt_br(weather.iloc[0]['mean'])}.
-- Média com névoa/nublado: {format_pt_br(weather.iloc[1]['mean'])}.
-- Média com precipitação/tempo adverso: {format_pt_br(weather.iloc[2]['mean'])}.
-- A correlação entre `temp` e `atemp` é 0,988; por isso `atemp` foi excluída.
-
-## DOE e regressão explicativa
-
-- A interação principal `hora × dia útil` possui eta quadrado parcial
-  {format_pt_br(interaction_eta, 3)}.
-- O fator hora possui eta quadrado parcial {format_pt_br(hour_eta, 3)} no M1.
-- O M1 possui R² ajustado {format_pt_br(final_model['Adjusted R-squared'], 3)}, AIC
-  {format_pt_br(final_model['AIC'], 1)} e BIC {format_pt_br(final_model['BIC'], 1)}
-  para `log1p(cnt)`.
+- A hora possui eta quadrado parcial {format_pt_br(eta['Hour'], 3)} e a interação
+  hora por tipo de dia, {format_pt_br(eta['Hour x working day'], 3)}.
+- Clima e estação apresentam eta quadrado parcial
+  {format_pt_br(eta['Weather situation'], 3)} e
+  {format_pt_br(eta['Season'], 3)}, respectivamente.
+- O único modelo na escala logarítmica usa
+  {format_pt_br(model['parameters'], 0)} parâmetros, com $R^2$ ajustado
+  {format_pt_br(model['adjusted_r_squared'], 3)}, AIC
+  {format_pt_br(model['aic'], 1)} e BIC {format_pt_br(model['bic'], 1)}.
 - A ACF residual é {format_pt_br(acf[1], 3)} na defasagem 1,
   {format_pt_br(acf[24], 3)} na defasagem 24 e {format_pt_br(acf[168], 3)} na
-  defasagem 168; portanto são apresentados erros-padrão HAC(168).
+  defasagem 168.
 
-## Predição
+## Escala da resposta e predição
 
-- O P1, que contém `hora × dia útil`, foi selecionado na validação expansiva de
-  Q2 e Q3 de 2012.
-- No holdout Q4/2012 (n={format_pt_br(holdout['evaluation_n'], 0)}), o P1 obteve
-  MAE {format_pt_br(holdout['mae'])}, RMSE {format_pt_br(holdout['rmse'])}, R²
-  {format_pt_br(holdout['r2'], 3)} e RMSLE {format_pt_br(holdout['rmsle'], 3)}.
+- O $R^2$ ajustado é {format_pt_br(scales.loc['cnt', 'adjusted_r_squared'], 3)} para
+  `cnt` e {format_pt_br(scales.loc['log1p_cnt', 'adjusted_r_squared'], 3)} para
+  `log1p(cnt)`.
+- O treino usa {format_pt_br(test['train_n'], 0)} horas até setembro de 2012; o
+  teste contém {format_pt_br(test['test_n'], 0)} horas no último trimestre de 2012.
+- MAE {format_pt_br(test['mae'])}, RMSE {format_pt_br(test['rmse'])} e
+  $R^2$ {format_pt_br(test['r2'], 3)} no teste.
 
-Os resultados representam associações em dados observacionais não randomizados;
-eles não demonstram causalidade.
+Os resultados representam associações e previsões em dados observacionais não
+randomizados; eles não demonstram causalidade.
 """
-    (OUTPUT_DIR / "resultados_mvp-pt-br.md").write_text(summary_pt, encoding="utf-8")
+    (OUTPUT_DIR / "resumo_resultados.md").write_text(summary_pt, encoding="utf-8")
     print(summary)
 
 

@@ -1,6 +1,0 @@
-{
-  "selection_rule": "lowest mean RMSE across Q2 and Q3 2012 expanding-window validation",
-  "selected_model": "P1_workingday_hour",
-  "holdout_period": "2012-10-01 through 2012-12-31",
-  "holdout_evaluated_after_selection": true
-}

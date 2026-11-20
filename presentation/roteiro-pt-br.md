@@ -1,4 +1,4 @@
-# Roteiro da apresentação — versão simplificada
+# Roteiro da apresentação
 
 ## 1. Problema de pesquisa
 
@@ -7,7 +7,7 @@
 
 ## 2. Dataset
 
-- Capital Bikeshare, Washington, D.C., 2011–2012.
+- Capital Bikeshare, Washington, D.C., 2011--2012.
 - 17.379 horas observadas em 731 dias.
 - Resposta: total de aluguéis por hora (`cnt`).
 
@@ -19,46 +19,43 @@
 
 ## 4. Fatores e hipótese
 
-- Hora, dia útil, clima, estação, temperatura, umidade, vento e ano.
-- Hipótese principal: `hora × dia útil`.
+- `hr`, `workingday`, `weathersit`, `season`, além de `temp`, `hum`, `windspeed` e `yr`.
+- Hipótese principal: `workingday × hr`.
 - Explicar por que OFAT perderia o padrão de deslocamento.
 
 ## 5. Descrição dos dados
 
-- Mostrar `response_distributions.png`.
-- Média 189,46; mediana 142; intervalo 1–977.
-- Resumir as médias por clima.
+- Média 189,46; mediana 142; intervalo 1--977; assimetria 1,277.
+- Resumir as médias por clima e por estação.
 
 ## 6. Efeitos e interação
 
-- Mostrar `primary_interaction.png`.
-- Interpretar os picos de manhã/fim da tarde em dias úteis.
+- Mostrar `main_effects.png` e `workingday_hr_interaction.png`.
+- Interpretar os picos de manhã e fim da tarde em dias úteis.
 - Interpretar o pico amplo de meio do dia em dias não úteis.
 - Eta quadrado parcial da interação: 0,589.
 
-## 7. Transformação e pressupostos
+## 7. Escala da resposta e ANOVA fatorial
 
-- Explicar por que avaliamos resíduos, não apenas a resposta.
-- Justificar `log1p(cnt)`.
-- Mostrar que heterocedasticidade e autocorrelação ainda existem.
-- Explicar HAC(168) em linguagem simples.
+- Comparar `cnt` com `log1p(cnt)`: $R^2$ ajustado 0,812 contra 0,927.
+- Breusch--Pagan 4281,6 contra 1676,6.
+- Hora 0,878; clima 0,120; estação 0,168; ano 0,264.
 
-## 8. Comparação M0–M1
+## 8. Regressão e diagnósticos dos resíduos
 
-- M0 possui apenas efeitos principais.
-- M1 acrescenta `hora × dia útil`.
-- R² ajustado aumenta de 0,824 para 0,927.
-- Relacionar a melhoria ao gráfico de interação.
+- Mostrar a fórmula do único modelo, com 58 parâmetros.
+- ACF dos resíduos: 0,612 na defasagem 1, 0,243 na 24 e 0,200 na 168.
+- Ressaltar que o conjunto de teste é a principal evidência preditiva.
 
 ## 9. Predição temporal
 
-- Explicar validação expansiva em Q2/Q3 e holdout Q4/2012.
-- Mostrar `holdout_predictions.png`.
-- P1: MAE 51,99; RMSE 83,07; R² fora da amostra 0,830.
+- Treino até 30 de setembro de 2012; teste no Q4/2012 (2.168 horas).
+- Mostrar `test_predictions.png`.
+- MAE 45,27; RMSE 72,97; R² no teste 0,869.
 
 ## 10. Conclusões e limitações
 
-- Hora por dia útil é a estrutura central da demanda.
-- Clima e estação ainda contribuem como ajustes.
+- Hora por tipo de dia é a estrutura central da demanda.
+- Clima, estação, temperatura e ano fornecem ajuste.
 - Não há randomização e ainda existe dependência residual.
 - Encerrar com a diferença entre associação e causalidade.
