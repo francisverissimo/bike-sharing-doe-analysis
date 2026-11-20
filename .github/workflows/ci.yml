@@ -27,7 +27,7 @@ jobs:
         run: python -m pip install -r requirements.txt
 
       - name: Lint
-        run: ruff check src tests analysis
+        run: ruff check src tests analysis presentation
 
       - name: Test
         run: pytest

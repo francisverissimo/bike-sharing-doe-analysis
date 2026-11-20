@@ -3,14 +3,15 @@ PIP := .venv/bin/pip
 RUFF := .venv/bin/ruff
 PYTEST := .venv/bin/pytest
 
-.PHONY: help setup lint test validate eda doe assumptions models prediction report-assets all
+.PHONY: help setup lint test validate eda doe assumptions models prediction report-assets slides all
 
 help:
 	@echo "Available targets:"
 	@echo "  setup  Create .venv and install pinned dependencies"
 	@echo "  lint   Check Python source and tests with Ruff"
 	@echo "  test   Run automated tests"
-	@echo "  all    Reproduce every MVP analysis artifact"
+	@echo "  slides Build the English slide deck (.pptx)"
+	@echo "  all    Reproduce every analysis artifact and the slide deck"
 
 setup:
 	python3 -m venv .venv
@@ -18,7 +19,7 @@ setup:
 	$(PIP) install -r requirements.txt
 
 lint:
-	$(RUFF) check src tests analysis
+	$(RUFF) check src tests analysis presentation
 
 test:
 	$(PYTEST)
@@ -44,4 +45,7 @@ prediction: models
 report-assets: prediction
 	$(PYTHON) analysis/06_report_assets.py
 
-all: report-assets
+slides: report-assets
+	$(PYTHON) presentation/build_slides.py
+
+all: slides

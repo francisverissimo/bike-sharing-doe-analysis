@@ -34,6 +34,9 @@ The SBC article is also maintained in both languages:
 - [English article](paper/main.tex) — canonical submission source
 - [Brazilian Portuguese article](paper/main-pt-br.tex) — study and review version
 
+The English slide deck is [`presentation/bike-sharing-analysis.pptx`](presentation/bike-sharing-analysis.pptx);
+it is rebuilt by `make slides` from the versioned figures and tables.
+
 ## Dataset
 
 The analysis uses `dataset/hour.csv`, which contains 17,379 hourly observations.

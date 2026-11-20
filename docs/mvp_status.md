@@ -15,7 +15,8 @@
 - Basic residual diagnostics: residual-versus-fitted, Q--Q, and residual ACF.
 - One chronological train/test split and test MAE, RMSE, and R-squared.
 - Generated report tables, SBC article drafts in English and Brazilian
-  Portuguese, and presentation outlines in both languages.
+  Portuguese, a reproducible English slide deck in `.pptx`, and presentation
+  outlines in both languages.
 - Automated tests, linting, and one-command reproduction through `make all`.
 - Equivalent didactic guides in English and Brazilian Portuguese.
 
