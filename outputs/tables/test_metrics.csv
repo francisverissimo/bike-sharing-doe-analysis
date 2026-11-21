@@ -1,0 +1,2 @@
+selected_model,response,train_n,test_n,train_end,test_start,test_end,mae,rmse,r2
+M1,log1p_cnt,8645,8734,2011-12-31 23:59:59,2012-01-01,2012-12-31 23:59:59,87.66796276607396,125.18537905551976,0.6408841494336068

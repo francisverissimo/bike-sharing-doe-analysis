@@ -1,26 +1,26 @@
 # Statistical analysis protocol
 
-**Status:** Draft, to be frozen before confirmatory tests are interpreted.
+**Status:** Final analysis protocol. The methodological decisions that define
+this analysis are recorded in `docs/decision_log.md`.
 
 ## Research question
 
 How do temporal and meteorological factors, particularly hour of day and working
 day status, relate to hourly bike rental demand, and how accurately can those
-factors predict future hourly demand?
+factors predict demand in the following calendar year?
 
 ## Study design
 
 This is an observational study with a natural factorial structure. There was no
-controlled assignment or randomization. Each record represents one observed
-hour, and the records are sequential in time. Results support association and
+controlled assignment or randomization. Each record represents one observed hour,
+and the records are sequential in time. Results support association and
 prediction, not causal claims.
 
 ## Response
 
 `cnt`, the total number of rentals in an hour.
 
-`casual` and `registered` are excluded from all predictor sets because their sum
-equals `cnt`.
+`casual` and `registered` are excluded because their sum equals `cnt`.
 
 ## Factors and covariates
 
@@ -28,92 +28,120 @@ Primary factors:
 
 - `hr` (categorical, 24 levels);
 - `workingday` (binary);
-- `weathersit` (ordinal categories);
+- `weathersit` (levels 3 and 4 pooled into one precipitation/adverse condition;
+  the raw four-level variable is retained for data validation);
 - `season` (categorical).
 
-Primary numerical covariates:
+Numerical covariates:
 
 - `temp`;
 - `hum`;
 - `windspeed`.
 
-`atemp` will not initially accompany `temp` because the two variables measure
-closely related thermal conditions. `mnth` and `season` will not be included
-together without a specific justification.
+`atemp` is not used because it correlates 0.988 with `temp`. The year indicator
+is not a regressor: with training restricted to 2011, it has no variation. It
+remains available for descriptive time-series context.
 
-## Prespecified hypotheses
+## Prespecified hypotheses and interactions
 
 1. Mean hourly demand differs across hours of the day.
 2. Working-day status changes the shape of the hourly demand profile.
-3. Adverse weather is associated with lower hourly demand.
-4. Temperature has a potentially nonlinear association with demand.
+3. Pooled adverse weather is associated with lower hourly demand.
+4. Temperature is associated with demand after adjustment for the factors.
 
-The primary interaction is `workingday × hr`. Secondary, exploratory
-interactions are `weathersit × hr`, `season × hr`, and
-`workingday × weathersit`.
+Three hour interactions are examined: `hr × workingday`, `hr × weather_group`,
+and `hr × season`. The hierarchy principle keeps component main effects whenever
+an interaction is retained. The final selected model retains only
+`hr × workingday` because BIC penalises the additional interaction terms.
 
 ## Descriptive analysis
 
-The analysis will report sample sizes, missingness, frequencies, mean, median,
-standard deviation, quartiles, minimum, maximum, distributions, boxplots, time
-plots, group means with uncertainty intervals, and numerical correlations.
+The analysis reports sample sizes, missingness, frequencies, mean, median,
+standard deviation, quartiles, minimum, maximum, distributions, boxplots, a daily
+time plot, group means with 95% confidence intervals, and numerical correlations.
+Main-effect plots cover the four factors; interaction plots cover the three
+prespecified hour interactions.
 
-## Inferential analysis
+## One-way analysis of variance
 
-Main effects and interactions will be examined through effect plots, factorial
-ANOVA/ANCOVA, nested-model comparisons, confidence intervals, and effect sizes.
-Tukey HSD will be used for prespecified pairwise comparisons only when its
-assumptions are defensible. The hierarchy principle requires main effects to
-remain whenever their interaction is present.
+Separate one-way ANOVAs on `log1p(cnt)` quantify the marginal association of each
+of the four factors with the response. Both $\eta^2$ and $\omega^2$ are reported
+because the training sample has 8,645 observations and p-values alone are
+uninformative. Working day is interpreted jointly with hour because its marginal
+effect is negligible.
 
-Because the sample is large, conclusions will not rely on p-values alone. They
-will also consider effect magnitude, confidence intervals, practical relevance,
-and temporal stability. Statistical associations will not be described as
-causal effects.
+## Factorial analysis of variance
 
-## Assumptions and transformations
+A type-II factorial ANOVA is fitted by ordinary least squares on the 2011
+training data. The final model contains all four factors, the three continuous
+covariates, and the `hr × workingday` interaction. Partial eta-squared is
+reported for every term. Because the sample is large and the design is
+observational and unbalanced, conclusions consider effect magnitude and temporal
+validation rather than p-values alone. No causal interpretation is made.
 
-Candidate response scales are `cnt`, `sqrt(cnt)`, and `log1p(cnt)`. Residual
-normality, variance stability, functional form, influential observations, and
-temporal autocorrelation will guide the decision. Diagnostics include QQ-plots,
-residual-versus-fitted and scale-location plots, Levene-type tests,
-Durbin–Watson, ACF/PACF, VIF, Cook's distance, leverage, and studentized
-residuals.
+## Post-hoc weather comparisons
 
-Classical standard errors will be compared with a temporal adjustment, such as
-HAC/Newey–West or clustering by date. The final choice will be recorded after
-inspecting residual autocorrelation.
+Because the omnibus weather effect is significant, Tukey's honestly significant
+difference (HSD) procedure compares the three pooled weather conditions on
+`log1p(cnt)`. It controls the family-wise error rate across the three pairwise
+contrasts and reports simultaneous 95% confidence intervals. No separate contrast
+is attempted for the three severe-weather hours.
 
-## Explanatory models
+## Progressive model sequence
 
-Models will be developed hierarchically:
+Four nested candidates are fitted on the same 2011 training sample:
 
-1. main effects;
-2. add `workingday × hr`;
-3. evaluate secondary interactions one at a time;
-4. evaluate a quadratic temperature term;
-5. select a parsimonious, interpretable final model.
+```text
+M0: log1p(cnt) ~ C(hr) + C(workingday) + C(weather_group) + C(season)
+                 + temp + hum + windspeed
+M1: M0 + C(hr):C(workingday)
+M2: M1 + C(hr):C(weather_group) + C(hr):C(season)
+M3: M2 + I(temp**2)
+```
 
-A negative-binomial regression may be included as a sensitivity analysis if the
-linear models remain unsuitable for the count response after transformation.
+Candidates are compared by adjusted R-squared, AIC, BIC, and nested F tests. The
+candidate with the lowest training BIC is retained as the final M4. Selection
+uses training data only. BIC selects M1, so M4 has 56 parameters.
+
+## Response scales
+
+Four response scales are evaluated on the selected model structure: `cnt`,
+`sqrt(cnt)`, `log1p(cnt)`, and a Box--Cox transformation with its exponent
+estimated from training counts. The comparison uses residual-versus-fitted
+plots, normal Q--Q plots, Shapiro--Wilk on a deterministic subset of 5,000
+residuals, the studentized Breusch--Pagan test, adjusted R-squared, and held-out
+count-scale MAE, RMSE, and R-squared. `log1p(cnt)` is retained for the best
+combination of accuracy and interpretability, not as a claim of normal residuals.
+
+## Residual diagnostics
+
+For the retained scale, the full diagnostic checklist includes:
+
+- residual-versus-fitted and normal Q--Q plots;
+- Shapiro--Wilk and studentized Breusch--Pagan tests;
+- Levene and Bartlett tests across fitted-value quintiles;
+- Durbin--Watson, residual ACF and PACF at observed-hour lags;
+- variance inflation factors for all non-intercept coefficients;
+- leverage and Cook's distance.
+
+Duan's smearing correction is used to return log-scale predictions to the count
+scale. Scale-specific smearing is also used when evaluating the other candidate
+responses.
 
 ## Predictive validation
 
-Random train/test splitting is prohibited. Validation will preserve chronology
-using expanding windows and a final holdout from the end of 2012. No observation
-may be used to predict an earlier observation.
+Random train/test splitting is not used because it would mix future and past
+observations. The model is trained on all 8,645 hours of 2011 and tested on all
+8,734 hours of 2012. Because the year indicator cannot be estimated from a single
+training year, the test error also reflects unmodelled system growth.
 
-Prediction will be assessed with MAE, RMSE, out-of-sample R-squared, and, if it
-adds useful information, RMSLE. Models will be compared with a simple baseline
-such as the historical mean for each `hr × workingday` combination.
-
-For explanatory analysis, `yr` may be categorical. Predictive models may instead
-use a continuous time index so that temporal growth is representable beyond an
-observed year category.
+Test performance is reported with MAE, RMSE, and out-of-sample R-squared on the
+count scale. Final test metrics are MAE 87.67, RMSE 125.19, and R-squared 0.641.
 
 ## Decision criteria
 
-The final model will balance assumption compliance, adjusted R-squared, AIC/BIC,
-chronological validation performance, interpretability, hierarchy, and
-parsimony. No observation or model term will be removed solely to improve a
-reported metric.
+The final model is selected by training BIC, with hierarchy enforced. Held-out
+accuracy selects the response scale among the four candidates. Diagnostics are
+reported in full rather than used to advertise a normality pass: temporal
+dependence and heteroscedasticity remain, so inferential p-values are descriptive
+and the chronological test set is the main predictive evidence.

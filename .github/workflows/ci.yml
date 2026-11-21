@@ -31,3 +31,9 @@ jobs:
 
       - name: Test
         run: pytest
+
+      - name: Reproduce analysis artifacts
+        run: make all
+
+      - name: Verify committed artifacts are current
+        run: git diff --exit-code

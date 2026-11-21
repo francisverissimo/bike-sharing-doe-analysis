@@ -1,10 +1,10 @@
 # Decision log
 
-This file records decisions that affect scientific interpretation,
-reproducibility, or collaboration. New entries should be appended; existing
-entries should not be silently rewritten after results are known.
+This file records the methodological decisions that define the current analysis.
+Each entry states the decision and its consequence for interpretation or
+reproducibility.
 
-## 2026-10-18 — Use the hourly dataset
+## Analyze the hourly dataset
 
 **Question:** Which aggregation should be analyzed?
 
@@ -12,87 +12,177 @@ entries should not be silently rewritten after results are known.
 whereas `day.csv` contains 731 daily observations and cannot represent hourly
 commuting patterns.
 
-**Decision:** Use `dataset/hour.csv` for all primary analyses. Retain `day.csv`
-only as part of the original distribution.
+**Decision:** Use `dataset/hour.csv` for all analyses. Retain `day.csv` only as
+part of the original distribution.
 
-**Consequence:** Hour of day can be modeled as a factor and interacted with
-working-day status.
+**Consequence:** Hour is modeled as a 24-level factor and interacted with other
+factors.
 
-## 2026-10-18 — Treat the study as observational
+## Treat the study as observational
 
-**Question:** How should the experimental design be described?
+**Question:** How should the design be described?
 
 **Evidence:** Weather and calendar conditions were observed during normal system
-operation; researchers did not assign or randomize treatments.
+operation; treatments were not assigned or randomized.
 
 **Decision:** Describe the data as observational with a natural factorial and
 temporal structure.
 
-**Consequence:** Report associations rather than causal effects and explicitly
-evaluate temporal dependence.
+**Consequence:** Report associations and predictions rather than causal effects,
+and evaluate temporal dependence explicitly.
 
-## 2026-10-18 — Prioritize the working-day by hour interaction
+## Prespecify three hour interactions
 
-**Question:** Which interaction should anchor the DOE analysis?
+**Question:** Which interactions should the DOE analysis examine?
 
-**Evidence:** Commuting behavior predicts morning and evening peaks on working
-days and a different recreational profile on other days.
+**Evidence:** Commuting behavior predicts different working-day and non-working-day
+hourly profiles; weather and season may also modify the hourly pattern.
 
-**Decision:** Prespecify `workingday × hr` as the primary interaction.
+**Decision:** Examine `hr × workingday`, `hr × weather_group`, and `hr × season`.
+Treat `hr × workingday` as the primary interaction and keep component main
+effects whenever an interaction is retained.
 
-**Consequence:** Both main effects remain in every model containing the
-interaction.
+**Consequence:** The final model retains only `hr × workingday` because BIC
+penalises the additional terms; all three interactions are still plotted and
+tested in the model sequence.
 
-## 2026-10-30 — Use Python scripts as the implementation
+## Use executable Python scripts
 
-**Question:** Which language and executable format should be canonical?
+**Question:** Which implementation format should be canonical?
 
-**Decision:** Use Python 3.10 and standalone scripts, without notebooks.
+**Decision:** Use Python 3.10 with numbered scripts under `analysis/` and reusable
+modules under `src/bike_sharing/`.
 
-**Consequence:** Reusable logic belongs in `src/bike_sharing/`, and numbered
-scripts under `analysis/` generate deterministic outputs.
+**Consequence:** `make all` regenerates deterministic outputs; no notebooks are
+required to reproduce the analysis.
 
-## 2026-10-30 — Collaborate directly on the main branch
+## Use a strict chronological split
 
-**Question:** How should the pair integrate work?
+**Question:** How should training and test data be separated?
 
-**Decision:** Both contributors commit directly to `main`.
+**Evidence:** Random splitting would mix future and past observations. Training
+only on 2011 leaves the year indicator constant in training.
 
-**Consequence:** Contributors must coordinate file ownership, synchronize before
-pushing, never force-push, and keep every shared commit complete and tested.
+**Decision:** Train on all 8,645 hours of 2011 and test on all 8,734 hours of 2012.
+Use `yr` for descriptive time-series context only, never as a regressor.
 
-## 2026-10-30 — Publish a public GitHub repository
+**Consequence:** Test error includes unmodelled system growth between years. The
+chronological test set is the main predictive evidence.
 
-**Question:** Where should the project be hosted?
+## Pool sparse severe weather with precipitation
 
-**Decision:** Publish the project as `bike-sharing-doe-analysis` on GitHub and
-retain the assignment and UCI screenshots in the public history.
+**Question:** How should weather level 4 be represented in models?
 
-**Consequence:** Dataset attribution and public-file review are required before
-the first push.
+**Evidence:** Only 3 of 17,379 observations have `weathersit = 4`, against 1,419 at
+level 3. A separate level-4 coefficient would be unstable and could not support
+meaningful contrasts.
 
-## 2026-11-04 — Do not license original project material yet
+**Decision:** Keep the original four-level variable for validation and descriptive
+counts, but combine levels 3 and 4 into one precipitation/adverse condition for
+models and effect plots.
 
-**Question:** Which license should apply to code and original text?
+**Consequence:** The grouped category has 1,422 observations. No conclusion claims
+to estimate severe-weather demand separately.
 
-**Decision:** Grant no code or text license at this stage. Continue to respect
-the dataset's CC BY 4.0 license and attribution requirements.
+## Do not impute absent hourly timestamps
 
-**Consequence:** No repository-level `LICENSE` file will be created until both
-authors make a later explicit decision.
+**Question:** Should the 165 gaps in the hourly calendar be imputed?
 
-## 2026-11-04 — Separate inference from prediction
+**Evidence:** The response is available for 17,379 recorded hours, and the models
+use contemporaneous factors rather than lagged response values. An unobserved
+record cannot be assumed to have zero rentals.
 
-**Question:** Should one fitted model serve both statistical interpretation and
-future prediction?
+**Decision:** Analyze recorded hours only and report the 165 absent timestamps.
 
-**Evidence:** Full-sample inference and chronological predictive evaluation have
-different goals and leakage constraints. A 2011-only training set also cannot
-estimate a categorical 2012 year effect.
+**Consequence:** Autocorrelation lags are described as observed-hour lags rather
+than exact clock-hour lags.
 
-**Decision:** Maintain an explanatory analysis for effects and interactions and
-a separate chronologically evaluated predictive workflow.
+## Exclude apparent temperature
 
-**Consequence:** Prediction will use expanding windows and an end-of-2012
-holdout rather than a random split or a strict 2011/2012 split with `yr` as an
-unseen categorical level.
+**Question:** Should `temp` and `atemp` be included together?
+
+**Evidence:** Their Pearson correlation is 0.988. Their candidate-set VIF values
+are 43.55 and 43.65; after removing `atemp`, selected numeric VIF values are near
+1.1 or below.
+
+**Decision:** Retain `temp` and exclude `atemp`. Include `I(temp**2)` in M3 to
+represent a non-linear thermal effect.
+
+**Consequence:** Temperature is represented without unstable duplicate
+information.
+
+## Use log-one-plus count as the response
+
+**Question:** Which response scale should anchor regression?
+
+**Evidence:** For the selected structure, adjusted R-squared favours `log1p(cnt)`;
+the estimated Box–Cox exponent is 0.315, and `log1p(cnt)` has the best held-out
+count-scale accuracy. No candidate satisfies normality or homoscedasticity.
+
+**Decision:** Fit and report models on `log1p(cnt)`, and use Duan's smearing
+correction when returning predictions to the count scale.
+
+**Consequence:** The transformation is a variance-and-fit compromise, not a claim
+of normal residuals.
+
+## Select M4 by training-only BIC
+
+**Question:** How should the progressive model sequence be resolved?
+
+**Evidence:** M0–M3 are nested candidates fitted on the same 2011 sample. M2 and
+M3 add 115 and 116 parameters and have higher BIC (9103.7 and 8786.0) than M1
+(8673.5).
+
+**Decision:** Compare M0–M3 by adjusted R-squared, AIC, BIC and nested F tests on
+training data only; retain the lowest-BIC candidate as M4.
+
+**Consequence:** BIC selects M1, so M4 = M1 with 56 parameters, adjusted
+R-squared 0.920, AIC 8277.9, and BIC 8673.5.
+
+## Report one-way ANOVA and Tukey contrasts
+
+**Question:** How should factor effects be summarized?
+
+**Decision:** Report separate one-way ANOVAs on `log1p(cnt)` for all four factors,
+a type-II factorial ANOVA on the final structure, and Tukey HSD for the three
+pooled weather conditions.
+
+**Consequence:** Hour has one-way eta-squared 0.695; factorial partial
+eta-squared is 0.866 for hour and 0.569 for hour by working day. All three
+adjusted weather contrasts are significant. Effect sizes are emphasised because
+p-values are uninformative with this sample size.
+
+## Compare four response scales
+
+**Question:** Should the response scale be assumed or evaluated?
+
+**Decision:** Evaluate `cnt`, `sqrt(cnt)`, `log1p(cnt)` and Box–Cox on the selected
+structure using residual plots, formal diagnostics, adjusted R-squared and 2012
+accuracy.
+
+**Consequence:** `log1p(cnt)` is retained for the best combination of accuracy and
+interpretability; the other scales and the Box–Cox exponent remain reported.
+
+## Report the full diagnostic checklist
+
+**Question:** How thoroughly should model assumptions be reported?
+
+**Decision:** Report residual-versus-fitted and Q–Q plots, Shapiro–Wilk,
+studentized Breusch–Pagan, Levene, Bartlett, Durbin–Watson, ACF and PACF at
+observed-hour lags, VIF, leverage and Cook's distance.
+
+**Consequence:** Shapiro–Wilk is 0.959, Breusch–Pagan 854.0, and Durbin–Watson
+0.814; ACF at lags 1/24/168 is 0.593/0.201/0.138. Heteroscedasticity and temporal
+dependence remain, so inferential p-values are descriptive. Maximum VIF is 24.0,
+maximum Cook's distance 0.0067, and maximum leverage 0.0139; no observation
+dominates the fit.
+
+## Validate on the unseen year
+
+**Question:** How should predictive accuracy be reported?
+
+**Decision:** Fit the final structure and every response scale on 2011 only, then
+report MAE, RMSE and out-of-sample R-squared on 2012 counts after smearing.
+
+**Consequence:** `log1p(cnt)` gives MAE 87.67, RMSE 125.19 and R-squared 0.641.
+The result is a prediction from observational data, not a causal estimate.

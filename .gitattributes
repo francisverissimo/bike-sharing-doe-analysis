@@ -5,11 +5,6 @@
 dataset/*.csv -text -diff
 dataset/Readme.txt -text -diff
 
-# Binary deliverables and screenshots.
+# Binary artifacts.
 *.pdf binary
 *.png binary
-
-# Third-party SBC template files are kept unmodified.
-*.sty -diff
-*.bst -diff
-paper/reference-template.tex -diff

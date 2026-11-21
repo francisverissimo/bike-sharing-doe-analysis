@@ -1,0 +1,9 @@
+{
+  "rows": 17379,
+  "calendar_days": 731,
+  "first_timestamp": "2011-01-01T00:00:00",
+  "last_timestamp": "2012-12-31T23:00:00",
+  "missing_hourly_timestamps": 165,
+  "weather_level_4_rows": 3,
+  "all_checks_passed": true
+}

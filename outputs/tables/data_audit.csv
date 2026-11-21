@@ -1,0 +1,16 @@
+check,passed,observed,expected
+sha256,True,e03de4ee4ef4dc376ac6e04bf829673c6269e8eba5c60fa121640fa2f829504f,e03de4ee4ef4dc376ac6e04bf829673c6269e8eba5c60fa121640fa2f829504f
+row_count,True,17379,17379
+raw_columns,True,"instant,dteday,season,yr,mnth,hr,holiday,weekday,workingday,weathersit,temp,atemp,hum,windspeed,casual,registered,cnt","instant,dteday,season,yr,mnth,hr,holiday,weekday,workingday,weathersit,temp,atemp,hum,windspeed,casual,registered,cnt"
+missing_values,True,0,0
+unique_instant,True,17379,17379
+unique_timestamp,True,17379,17379
+count_identity,True,0,0 violations
+positive_count,True,min=1,min>=1
+hour_range,True,0..23,0..23
+season_levels,True,"[1, 2, 3, 4]","[1, 2, 3, 4]"
+weather_levels,True,"[1, 2, 3, 4]","[1, 2, 3, 4]"
+binary_fields,True,valid,"all values in {0,1}"
+normalized_weather,True,within range,"all values in [0,1]"
+chronological_order,True,monotonic,monotonic
+date_range,True,2011-01-01..2012-12-31,2011-01-01..2012-12-31

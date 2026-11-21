@@ -1,0 +1,2 @@
+selected_model,target,parameters,r_squared,adjusted_r_squared,aic,bic,residual_std
+M1,log1p_cnt,56,0.920033499293022,0.9195214306541952,8277.866567374926,8673.491805669499,0.3893016743575789

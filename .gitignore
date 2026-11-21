@@ -29,18 +29,6 @@ Thumbs.db
 outputs/models/
 outputs/tmp/
 
-# LaTeX build products (submitted PDFs belong in deliverables/)
-paper/*.aux
-paper/*.bbl
-paper/*.blg
-paper/*.fdb_latexmk
-paper/*.fls
-paper/*.log
-paper/*.out
-paper/*.synctex.gz
-paper/*.toc
-paper/main.pdf
-
 # Test and analysis scratch files
 *.tmp
 *.bak
